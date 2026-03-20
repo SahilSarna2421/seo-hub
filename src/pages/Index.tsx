@@ -3,11 +3,14 @@ import { useToast } from "@/hooks/use-toast";
 import { AnalyzerForm } from "@/components/AnalyzerForm";
 import { SeoResults, type SeoReport } from "@/components/SeoResults";
 import { ReportHistory } from "@/components/ReportHistory";
-import { Search } from "lucide-react";
+import { Search, Moon, Sun } from "lucide-react"; // ✅ NEW
 import { motion } from "framer-motion";
+import { useTheme } from "@/components/theme-provider"; // ✅ NEW
 
 const Index = () => {
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme(); // ✅ NEW
+
   const [analyzing, setAnalyzing] = useState(false);
   const [currentReport, setCurrentReport] = useState<SeoReport | null>(null);
   const [reports, setReports] = useState<SeoReport[]>([]);
@@ -45,16 +48,36 @@ const Index = () => {
     }
   };
 
+  // ✅ Toggle function
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+
+          {/* LEFT: Logo */}
           <div className="flex items-center gap-2">
             <Search className="h-6 w-6 text-secondary" />
             <h1 className="text-xl font-heading font-bold text-foreground">
               SEO Toolkit
             </h1>
           </div>
+
+          {/* 🔥 RIGHT: DARK MODE TOGGLE */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg border border-border bg-muted hover:bg-accent transition"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5 text-yellow-400" />
+            ) : (
+              <Moon className="h-5 w-5 text-foreground" />
+            )}
+          </button>
+
         </div>
       </header>
 

@@ -10,69 +10,223 @@ app.use(express.json());
 
 app.post("/analyze", async (req, res) => {
   try {
-    const { url } = req.body;
+    let { url } = req.body;
 
     if (!url) {
       return res.status(400).json({ error: "URL is required" });
     }
+
+    if (!url.startsWith("http")) {
+      url = "https://" + url;
+    }
+
+    const startTime = Date.now();
 
     const response = await axios.get(url, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
       },
+      timeout: 10000,
     });
-    const html = response.data;
 
+    const loadTime = Date.now() - startTime;
+
+    const html = response.data;
     const $ = cheerio.load(html);
 
-    const title = $("title").text() || null;
-    const metaDescription = $('meta[name="description"]').attr("content") || null;
+    // ✅ Title
+    const title = $("title").first().text().trim() || null;
 
-    const h1Count = $("h1").length;
+    // ✅ Meta Description
+    const metaDescription =
+      $('meta[name="description"]').attr("content")?.trim() || null;
 
+    // ✅ H1
+    const h1Tags = $("h1").map((i, el) => $(el).text().trim()).get();
+    const h1Count = h1Tags.length;
+
+    // 🔥 NEW: H2 & H3
+    const h2Count = $("h2").length;
+    const h3Count = $("h3").length;
+
+    // 🔥 Heading Structure Analysis
+    const headingAnalysis = {
+      h1: h1Count,
+      h2: h2Count,
+      h3: h3Count,
+      issues: []
+    };
+
+    if (h1Count === 0) headingAnalysis.issues.push("Missing H1 tag");
+    if (h1Count > 1) headingAnalysis.issues.push("Multiple H1 tags");
+    if (h2Count === 0) headingAnalysis.issues.push("No H2 tags found");
+
+    // ✅ Images
     const images = $("img");
     const totalImages = images.length;
 
     let imagesWithoutAlt = 0;
     images.each((i, el) => {
-      if (!$(el).attr("alt")) {
+      const alt = $(el).attr("alt");
+      if (!alt || alt.trim() === "") {
         imagesWithoutAlt++;
       }
     });
 
-    const totalLinks = $("a").length;
+    // ✅ Links
+    const links = $("a");
+    const totalLinks = links.length;
 
-    const text = $("body").text();
-    const wordCount = text.split(/\s+/).filter(Boolean).length;
+    let internalLinks = 0;
+    let externalLinks = 0;
 
+    const linkList = [];
+
+    links.each((i, el) => {
+      const href = $(el).attr("href");
+      if (!href) return;
+
+      linkList.push(href);
+
+      if (
+        href.startsWith("/") ||
+        href.includes(new URL(url).hostname)
+      ) {
+        internalLinks++;
+      } else {
+        externalLinks++;
+      }
+    });
+
+    // 🔥 NEW: Broken Links Detection (LIMITED for performance)
+    const brokenLinks = [];
+    const linksToCheck = linkList.slice(0, 15); // limit
+
+    await Promise.all(
+      linksToCheck.map(async (link) => {
+        try {
+          if (!link.startsWith("http")) return;
+
+          const res = await axios.head(link, { timeout: 3000 });
+          if (res.status >= 400) {
+            brokenLinks.push(link);
+          }
+        } catch {
+          brokenLinks.push(link);
+        }
+      })
+    );
+
+    // ✅ Word Count
+    const text = $("body").text().replace(/\s+/g, " ").trim();
+    const wordCount = text ? text.split(" ").length : 0;
+
+    // ✅ Keyword Density
+    const stopWords = new Set([
+      "the","is","in","and","to","of","a","for","on","with","as","by","an","at","be","this","that","it","from","or","are"
+    ]);
+
+    const words = text
+      .toLowerCase()
+      .replace(/[^\w\s]/g, "")
+      .split(/\s+/)
+      .filter(word => word.length > 2 && !stopWords.has(word));
+
+    const freqMap = {};
+
+    words.forEach(word => {
+      freqMap[word] = (freqMap[word] || 0) + 1;
+    });
+
+    const keywordDensity = Object.entries(freqMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([word, count]) => ({
+        keyword: word,
+        count,
+        density: ((count / words.length) * 100).toFixed(2)
+      }));
+
+    // ✅ Viewport
+    const hasViewport = $('meta[name="viewport"]').length > 0;
+
+    // ✅ Suggestions
+    const suggestions = [];
+
+    if (!title) suggestions.push("Missing title tag");
+    if (!metaDescription) suggestions.push("Missing meta description");
+    if (h1Count === 0) suggestions.push("No H1 tag found");
+    if (wordCount < 300) suggestions.push("Content is too short");
+    if (imagesWithoutAlt > 0)
+      suggestions.push("Images missing alt text");
+    if (internalLinks < 3)
+      suggestions.push("Not enough internal links");
+    if (brokenLinks.length > 0)
+      suggestions.push("Broken links detected");
+
+    // ✅ SEO Breakdown
+    const breakdown = [];
     let score = 100;
 
-    if (!title) score -= 20;
-    if (!metaDescription) score -= 20;
+    if (!title) score -= 15;
+    if (!metaDescription) score -= 15;
     if (h1Count !== 1) score -= 10;
     if (imagesWithoutAlt > 0) score -= 10;
-    if (wordCount < 300) score -= 20;
+    if (wordCount < 300) score -= 15;
+    if (internalLinks < 3) score -= 10;
+    if (brokenLinks.length > 0) score -= 10;
 
+    if (score < 0) score = 0;
+
+    // ✅ Final Response
     const report = {
       id: Date.now().toString(),
       url,
       seo_score: score,
+
       title,
       meta_description: metaDescription,
+
       h1_count: h1Count,
-      images_without_alt: imagesWithoutAlt,
+      h1_tags: h1Tags,
+
+      h2_count: h2Count, // 🔥 NEW
+      h3_count: h3Count, // 🔥 NEW
+      heading_analysis: headingAnalysis, // 🔥 NEW
+
       total_images: totalImages,
+      images_without_alt: imagesWithoutAlt,
+
       total_links: totalLinks,
+      internal_links: internalLinks,
+      external_links: externalLinks,
+
+      broken_links: brokenLinks.length, // 🔥 NEW
+      broken_links_list: brokenLinks,   // 🔥 NEW
+
       word_count: wordCount,
-      suggestions: [],
+
+      keyword_density: keywordDensity,
+      seo_breakdown: breakdown,
+
+      has_viewport: hasViewport,
+
+      load_time_ms: loadTime,
+
+      suggestions,
+
       created_at: new Date().toISOString(),
     };
 
     res.json(report);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to analyze website" });
+    console.error("ERROR:", error.message);
+
+    res.status(500).json({
+      error: "Failed to analyze website",
+      details: error.message,
+    });
   }
 });
 

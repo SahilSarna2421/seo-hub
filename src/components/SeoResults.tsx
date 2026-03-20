@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import {
-  FileText, Type, Hash, Image, Link, AlignLeft,
+  FileText, Type, Hash, Image, Link, AlignLeft, Clock,
   CheckCircle2, AlertTriangle, XCircle
 } from 'lucide-react';
 
@@ -13,11 +13,46 @@ export type SeoReport = {
   seo_score: number;
   title: string | null;
   meta_description: string | null;
+
   h1_count: number;
+  h1_tags?: string[];
+
+  h2_count?: number;
+  h3_count?: number;
+
+  heading_analysis?: {
+    h1: number;
+    h2: number;
+    h3: number;
+    issues: string[];
+  };
+
   images_without_alt: number;
   total_images: number;
+
   total_links: number;
+  internal_links?: number;
+  external_links?: number;
+
+  broken_links?: number;
+  broken_links_list?: string[];
+
   word_count: number;
+
+  load_time_ms?: number;
+
+  keyword_density?: {
+    keyword: string;
+    count: number;
+    density: string;
+  }[];
+
+  seo_breakdown?: {
+    factor: string;
+    status: 'good' | 'warning' | 'bad';
+    impact: string;
+  }[];
+
   suggestions: string[];
   created_at: string;
 };
@@ -33,14 +68,20 @@ const MetricCard = ({ icon: Icon, label, value, status }: {
     warning: 'text-score-average',
     bad: 'text-score-poor',
   };
-  const StatusIcon = status === 'good' ? CheckCircle2 : status === 'warning' ? AlertTriangle : XCircle;
+
+  const StatusIcon =
+    status === 'good' ? CheckCircle2 :
+    status === 'warning' ? AlertTriangle :
+    XCircle;
 
   return (
     <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
       <Icon className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-sm text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium text-foreground truncate">{value || '—'}</p>
+        <p className="text-sm font-medium text-foreground truncate">
+          {value !== null && value !== undefined && value !== '' ? value : '—'}
+        </p>
       </div>
       <StatusIcon className={`h-4 w-4 shrink-0 ${statusColors[status]}`} />
     </div>
@@ -56,6 +97,7 @@ export const SeoResults = ({ report }: { report: SeoReport }) => {
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-3xl space-y-6"
     >
+      {/* MAIN SEO CARD */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
@@ -64,46 +106,190 @@ export const SeoResults = ({ report }: { report: SeoReport }) => {
           </div>
           <ScoreGauge score={report.seo_score} />
         </CardHeader>
+
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
           <MetricCard
             icon={FileText}
             label="Title Tag"
             value={report.title || 'Missing'}
             status={report.title ? 'good' : 'bad'}
           />
+
           <MetricCard
             icon={Type}
             label="Meta Description"
             value={report.meta_description ? `${report.meta_description.substring(0, 60)}...` : 'Missing'}
             status={report.meta_description ? 'good' : 'bad'}
           />
+
           <MetricCard
             icon={Hash}
             label="H1 Tags"
-            value={report.h1_count}
+            value={
+              report.h1_tags && report.h1_tags.length > 0
+                ? report.h1_tags[0]
+                : report.h1_count
+            }
             status={report.h1_count === 1 ? 'good' : report.h1_count === 0 ? 'bad' : 'warning'}
           />
+
           <MetricCard
             icon={Image}
             label="Images without Alt"
             value={`${report.images_without_alt} / ${report.total_images}`}
-            status={report.images_without_alt === 0 ? 'good' : report.images_without_alt <= 2 ? 'warning' : 'bad'}
+            status={
+              report.images_without_alt === 0
+                ? 'good'
+                : report.images_without_alt <= 2
+                ? 'warning'
+                : 'bad'
+            }
           />
+
           <MetricCard
             icon={Link}
             label="Total Links"
-            value={report.total_links}
+            value={
+              report.internal_links !== undefined
+                ? `${report.total_links} (Int: ${report.internal_links}, Ext: ${report.external_links})`
+                : report.total_links
+            }
             status={report.total_links > 0 ? 'good' : 'warning'}
           />
+
           <MetricCard
             icon={AlignLeft}
             label="Word Count"
             value={report.word_count}
-            status={report.word_count >= 300 ? 'good' : report.word_count >= 100 ? 'warning' : 'bad'}
+            status={
+              report.word_count >= 300
+                ? 'good'
+                : report.word_count >= 100
+                ? 'warning'
+                : 'bad'
+            }
           />
+
+          {report.load_time_ms !== undefined && (
+            <MetricCard
+              icon={Clock}
+              label="Load Time"
+              value={`${report.load_time_ms} ms`}
+              status={report.load_time_ms < 2000 ? 'good' : 'warning'}
+            />
+          )}
+
         </CardContent>
       </Card>
 
+      {/* SEO BREAKDOWN */}
+      {report.seo_breakdown && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-heading text-lg">SEO Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {report.seo_breakdown.map((item, i) => (
+              <div key={i} className="flex justify-between items-center text-sm">
+                <span>{item.factor}</span>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{item.impact}</Badge>
+                  {item.status === 'good' && <CheckCircle2 className="text-score-excellent h-4 w-4" />}
+                  {item.status === 'warning' && <AlertTriangle className="text-score-average h-4 w-4" />}
+                  {item.status === 'bad' && <XCircle className="text-score-poor h-4 w-4" />}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* HEADING STRUCTURE */}
+      {report.heading_analysis && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-heading text-lg">Heading Structure</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+
+            <div className="flex justify-between">
+              <span>H1 Tags</span>
+              <span>{report.heading_analysis.h1}</span>
+            </div>
+
+            <div className="flex justify-between">
+              <span>H2 Tags</span>
+              <span>{report.heading_analysis.h2}</span>
+            </div>
+
+            <div className="flex justify-between">
+              <span>H3 Tags</span>
+              <span>{report.heading_analysis.h3}</span>
+            </div>
+
+            {report.heading_analysis.issues.length > 0 && (
+              <div className="pt-2 space-y-1">
+                {report.heading_analysis.issues.map((issue, i) => (
+                  <div key={i} className="flex items-center gap-2 text-score-poor">
+                    <XCircle className="h-4 w-4" />
+                    <span>{issue}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+          </CardContent>
+        </Card>
+      )}
+
+      {/* KEYWORD DENSITY */}
+      {report.keyword_density && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-heading text-lg">Top Keywords</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {report.keyword_density.map((kw, i) => (
+              <div key={i} className="flex justify-between text-sm">
+                <span>{kw.keyword}</span>
+                <span>{kw.count} ({kw.density}%)</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* BROKEN LINKS */}
+      {report.broken_links !== undefined && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-heading text-lg">Broken Links</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+
+            <div className="flex justify-between">
+              <span>Total Broken Links</span>
+              <span className={report.broken_links > 0 ? "text-score-poor" : "text-score-excellent"}>
+                {report.broken_links}
+              </span>
+            </div>
+
+            {report.broken_links > 0 && report.broken_links_list && (
+              <div className="pt-2 space-y-1">
+                {report.broken_links_list.slice(0, 5).map((link, i) => (
+                  <div key={i} className="text-xs text-muted-foreground truncate">
+                    {link}
+                  </div>
+                ))}
+              </div>
+            )}
+
+          </CardContent>
+        </Card>
+      )}
+
+      {/* SUGGESTIONS */}
       {suggestions.length > 0 && (
         <Card>
           <CardHeader>
@@ -112,7 +298,7 @@ export const SeoResults = ({ report }: { report: SeoReport }) => {
           <CardContent className="space-y-2">
             {suggestions.map((s, i) => (
               <div key={i} className="flex items-start gap-2 text-sm">
-                <Badge variant="outline" className="shrink-0 mt-0.5 text-xs border-score-average text-score-average">
+                <Badge variant="outline" className="text-xs border-score-average text-score-average">
                   Fix
                 </Badge>
                 <span className="text-muted-foreground">{s}</span>
