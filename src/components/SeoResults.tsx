@@ -75,15 +75,17 @@ const MetricCard = ({ icon: Icon, label, value, status }: {
     XCircle;
 
   return (
-    <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-      <Icon className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
+    <div className="flex items-start gap-4 p-5 rounded-2xl bg-card border border-border/50 hover:shadow-glow hover:border-primary/50 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300">
+      <div className={`p-2.5 rounded-xl bg-muted/50 ${statusColors[status]}`}>
+        <Icon className="h-5 w-5 shrink-0" />
+      </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium text-foreground truncate">
+        <p className="text-sm text-muted-foreground font-medium mb-1">{label}</p>
+        <p className="text-lg font-semibold text-foreground truncate">
           {value !== null && value !== undefined && value !== '' ? value : '—'}
         </p>
       </div>
-      <StatusIcon className={`h-4 w-4 shrink-0 ${statusColors[status]}`} />
+      <StatusIcon className={`h-5 w-5 shrink-0 ${statusColors[status]}`} />
     </div>
   );
 };
@@ -98,16 +100,17 @@ export const SeoResults = ({ report }: { report: SeoReport }) => {
       className="w-full max-w-3xl space-y-6"
     >
       {/* MAIN SEO CARD */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <div>
-            <CardTitle className="font-heading text-xl">SEO Analysis</CardTitle>
-            <p className="text-sm text-muted-foreground truncate max-w-md">{report.url}</p>
+      <Card className="rounded-2xl border-border/50 shadow-sm overflow-hidden border-t border-t-primary/20 bg-gradient-to-b from-primary/5 to-transparent">
+        <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-8 pt-8">
+          <div className="text-center md:text-left mb-6 md:mb-0">
+            <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-primary/20">Analysis Complete</Badge>
+            <CardTitle className="font-heading text-3xl font-bold mb-2">SEO Score</CardTitle>
+            <p className="text-base text-muted-foreground truncate max-w-md">{report.url}</p>
           </div>
           <ScoreGauge score={report.seo_score} />
         </CardHeader>
 
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
           <MetricCard
             icon={FileText}
@@ -291,17 +294,25 @@ export const SeoResults = ({ report }: { report: SeoReport }) => {
 
       {/* SUGGESTIONS */}
       {suggestions.length > 0 && (
-        <Card>
+        <Card className="rounded-2xl border-border/50 shadow-sm border-t border-t-yellow-500/20">
           <CardHeader>
-            <CardTitle className="font-heading text-lg">Suggestions</CardTitle>
+            <CardTitle className="font-heading text-xl flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Actionable Suggestions
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-4">
             {suggestions.map((s, i) => (
-              <div key={i} className="flex items-start gap-2 text-sm">
-                <Badge variant="outline" className="text-xs border-score-average text-score-average">
-                  Fix
+              <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-card border border-border/50 hover:bg-muted/30 transition-colors">
+                <div className="p-2 rounded-lg bg-yellow-500/10 text-yellow-500 shrink-0 mt-0.5">
+                  <XCircle className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground leading-relaxed">{s}</p>
+                </div>
+                <Badge variant="outline" className="text-xs shrink-0 whitespace-nowrap bg-background">
+                  Needs Fix
                 </Badge>
-                <span className="text-muted-foreground">{s}</span>
               </div>
             ))}
           </CardContent>

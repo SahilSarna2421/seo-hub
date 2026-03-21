@@ -3,19 +3,14 @@ import { motion } from "framer-motion";
 import { ScoreGauge } from "@/components/ScoreGauge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Moon, Sun } from "lucide-react";
-import { useTheme } from "@/components/theme-provider";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Navbar } from "@/components/Navbar";
+import { Search, FileText, Loader2, Highlighter, AlertTriangle, XCircle } from "lucide-react";
 
 const ContentOptimizer = () => {
   const [keyword, setKeyword] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
-
-  const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
-  const location = useLocation();
 
   const handleOptimize = async () => {
     if (!keyword || !content) return;
@@ -41,10 +36,6 @@ const ContentOptimizer = () => {
     }
   };
 
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
   const getScoreLabel = (score: number) => {
     if (score >= 85) return "Excellent 🚀";
     if (score >= 70) return "Good 👍";
@@ -54,9 +45,7 @@ const ContentOptimizer = () => {
 
   const getHighlightedText = () => {
     if (!keyword || !content) return content;
-
     const regex = new RegExp(`(${keyword})`, "gi");
-
     return content.replace(
       regex,
       `<mark class="bg-green-500/30 px-1 rounded">$1</mark>`
@@ -64,119 +53,91 @@ const ContentOptimizer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background radial glow */}
+      <div className="absolute inset-x-0 top-0 -z-10 transform-gpu overflow-hidden blur-3xl pointer-events-none">
+        <div className="relative left-[calc(50%+11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-bl from-primary to-emerald-900 opacity-20 sm:left-[calc(50%+30rem)] sm:w-[72.1875rem] clip-path-polygon"></div>
+      </div>
 
-      {/* 🔥 HEADER (NOW SAME AS ANALYZER) */}
-      <header className="border-b border-border">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-
-          {/* LEFT */}
-          <div className="flex items-center gap-6">
-
-            <div
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => navigate("/")}
-            >
-              <Search className="h-6 w-6 text-secondary" />
-              <h1 className="text-xl font-heading font-bold">
-                SEO Toolkit
-              </h1>
-            </div>
-
-            {/* NAV */}
-            <div className="flex gap-4 text-sm">
-
-              <button
-                onClick={() => navigate("/analyzer")}
-                className={`px-3 py-1 rounded-md transition ${
-                  location.pathname === "/analyzer"
-                    ? "bg-secondary text-white"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Analyzer
-              </button>
-
-              <button
-                onClick={() => navigate("/optimizer")}
-                className={`px-3 py-1 rounded-md transition ${
-                  location.pathname === "/optimizer"
-                    ? "bg-secondary text-white"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Optimizer
-              </button>
-
-            </div>
-          </div>
-
-          {/* DARK MODE */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg border border-border bg-muted hover:bg-accent transition"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5 text-yellow-400" />
-            ) : (
-              <Moon className="h-5 w-5 text-foreground" />
-            )}
-          </button>
-
-        </div>
-      </header>
+      <Navbar />
 
       {/* MAIN */}
       <div className="px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-6">
 
           {/* HEADER */}
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-heading font-bold">
-              SEO Content Optimizer
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center space-y-3 mb-8"
+          >
+            <h1 className="text-4xl font-heading font-bold">
+              Content Optimizer
             </h1>
-            <p className="text-muted-foreground">
-              Improve your content using keyword-based SEO analysis
+            <p className="text-lg text-muted-foreground">
+              Write perfectly optimized articles to rank higher
             </p>
-          </div>
+          </motion.div>
 
           {/* INPUT */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Enter Content</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="rounded-2xl border-border/50 shadow-sm bg-card/80 backdrop-blur-sm overflow-hidden">
+              <CardHeader className="bg-muted/20 border-b border-border/30 pb-4">
+                <CardTitle className="text-xl font-heading flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  Enter Content
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5 pt-6">
 
-              <input
-                type="text"
-                placeholder="Enter target keyword..."
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                className="w-full p-3 rounded-md border border-border bg-background"
-              />
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Enter target keyword..."
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                    className="w-full pl-12 h-14 rounded-xl border-transparent bg-background/50 shadow-sm focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all font-medium"
+                  />
+                </div>
 
-              <textarea
-                placeholder="Paste your article..."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                rows={8}
-                className="w-full p-3 rounded-md border border-border bg-background"
-              />
+                <div className="relative group">
+                  <textarea
+                    placeholder="Paste your article here..."
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    rows={10}
+                    className="w-full p-4 rounded-xl border-transparent bg-background/50 shadow-sm focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all resize-none leading-relaxed"
+                  />
+                  <div className="absolute bottom-4 right-4 px-3 py-1 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 text-xs font-medium text-muted-foreground flex items-center gap-2 opacity-80 group-focus-within:opacity-100 transition-opacity">
+                    <span>{content.length} chars</span>
+                    <span className="w-1 h-1 rounded-full bg-border/80" />
+                    <span>{content.split(/\s+/).filter(w => w.length > 0).length} words</span>
+                  </div>
+                </div>
 
-              <p className="text-xs text-muted-foreground">
-                {content.length} characters
-              </p>
+                <button
+                  onClick={handleOptimize}
+                  disabled={loading}
+                  className="w-full h-14 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-glow transition-all duration-300 font-semibold text-base flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : "Optimize Content"}
+                </button>
 
-              <button
-                onClick={handleOptimize}
-                disabled={loading}
-                className="w-full py-3 rounded-md bg-secondary text-white font-medium"
-              >
-                {loading ? "Analyzing..." : "Optimize Content"}
-              </button>
-
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* RESULTS */}
           {result && (
@@ -187,59 +148,71 @@ const ContentOptimizer = () => {
             >
 
               {/* SCORE */}
-              <Card>
-                <CardHeader className="flex items-center justify-between">
+              <Card className="rounded-2xl border-border/50 shadow-sm border-t border-t-primary/20 bg-gradient-to-b from-primary/5 to-transparent">
+                <CardHeader className="flex flex-row items-center justify-between pb-6">
                   <div>
-                    <CardTitle>SEO Score</CardTitle>
-                    <p className="text-sm text-muted-foreground">
+                    <CardTitle className="font-heading text-2xl font-bold mb-2">Optimization Score</CardTitle>
+                    <Badge variant="outline" className={`font-medium py-1 px-3 ${
+                      result.score >= 85 ? "bg-score-excellent/10 text-score-excellent border-score-excellent/20" : 
+                      result.score >= 70 ? "bg-score-good/10 text-score-good border-score-good/20" : 
+                      result.score >= 50 ? "bg-score-average/10 text-score-average border-score-average/20" : 
+                      "bg-score-poor/10 text-score-poor border-score-poor/20"
+                    }`}>
                       {getScoreLabel(result.score)}
-                    </p>
+                    </Badge>
                   </div>
                   <ScoreGauge score={result.score} />
                 </CardHeader>
 
-                <CardContent className="grid grid-cols-2 gap-4 text-sm">
+                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 bg-card/40 rounded-b-2xl border-t border-border/30">
 
-                  <div>
-                    <p className="text-muted-foreground">Total Words</p>
-                    <p>{result.total_words}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Total Words</p>
+                    <p className="text-2xl font-bold">{result.total_words}</p>
                   </div>
 
-                  <div>
-                    <p className="text-muted-foreground">Keyword Count</p>
-                    <p>{result.keyword_count}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Keyword Count</p>
+                    <p className="text-2xl font-bold text-primary">{result.keyword_count}</p>
                   </div>
 
-                  <div>
-                    <p className="text-muted-foreground">Keyword Density</p>
-                    <p>{result.keyword_density}%</p>
+                  <div className="space-y-2 col-span-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <p className="font-medium text-muted-foreground">Keyword Density</p>
+                      <p className="font-semibold">{result.keyword_density}%</p>
+                    </div>
 
-                    <div className="w-full bg-muted h-2 rounded mt-1">
-                      <div
-                        className="bg-secondary h-2 rounded"
-                        style={{
-                          width: `${Math.min(parseFloat(result.keyword_density) * 20, 100)}%`,
-                        }}
+                    <div className="w-full bg-muted/80 h-2.5 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(parseFloat(result.keyword_density) * 20, 100)}%` }}
+                        transition={{ duration: 1, delay: 0.5 }}
+                        className={`h-full rounded-full ${
+                          parseFloat(result.keyword_density) >= 1 && parseFloat(result.keyword_density) <= 2.5 
+                            ? "bg-primary" 
+                            : "bg-yellow-500"
+                        }`}
                       />
                     </div>
-                  </div>
-
-                  <div>
-                    <p className="text-muted-foreground">Keyword in Start</p>
-                    <p>{result.keyword_in_start ? "Yes" : "No"}</p>
+                    <p className="text-xs text-muted-foreground text-right mt-1">Optimal: 1% - 2.5%</p>
                   </div>
 
                 </CardContent>
               </Card>
 
               {/* HIGHLIGHT */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Keyword Highlight</CardTitle>
+              <Card className="rounded-2xl border-border/50 shadow-sm overflow-hidden">
+                <CardHeader className="bg-muted/20 border-b border-border/30 pb-4">
+                  <CardTitle className="text-lg font-heading flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500">
+                      <Highlighter className="h-4 w-4" />
+                    </div>
+                    Content Preview
+                  </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                   <div
-                    className="text-sm leading-relaxed whitespace-pre-wrap"
+                    className="p-6 text-base leading-loose whitespace-pre-wrap bg-background font-body max-h-[400px] overflow-y-auto custom-scrollbar"
                     dangerouslySetInnerHTML={{ __html: getHighlightedText() }}
                   />
                 </CardContent>
@@ -247,15 +220,20 @@ const ContentOptimizer = () => {
 
               {/* SUGGESTIONS */}
               {result.suggestions.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Suggestions</CardTitle>
+                <Card className="rounded-2xl border-border/50 shadow-sm border-t border-t-yellow-500/20">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="font-heading text-xl flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                      How to improve
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2">
+                  <CardContent className="space-y-3">
                     {result.suggestions.map((s: string, i: number) => (
-                      <div key={i} className="flex gap-2 text-sm">
-                        <Badge variant="outline">Fix</Badge>
-                        <span className="text-muted-foreground">{s}</span>
+                      <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-muted/20 border border-border/30 hover:bg-muted/40 transition-colors">
+                        <div className="p-1.5 rounded-lg bg-yellow-500/10 text-yellow-500 shrink-0 mt-0.5">
+                          <XCircle className="h-4 w-4" />
+                        </div>
+                        <p className="text-sm font-medium leading-relaxed flex-1">{s}</p>
                       </div>
                     ))}
                   </CardContent>

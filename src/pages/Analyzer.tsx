@@ -3,16 +3,11 @@ import { useToast } from "@/hooks/use-toast";
 import { AnalyzerForm } from "@/components/AnalyzerForm";
 import { SeoResults, type SeoReport } from "@/components/SeoResults";
 import { ReportHistory } from "@/components/ReportHistory";
-import { Search, Moon, Sun } from "lucide-react";
 import { motion } from "framer-motion";
-import { useTheme } from "@/components/theme-provider";
-import { useNavigate, useLocation } from "react-router-dom"; // 🔥 NEW
+import { Navbar } from "@/components/Navbar";
 
 const Analyzer = () => {
   const { toast } = useToast();
-  const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
-  const location = useLocation();
 
   const [analyzing, setAnalyzing] = useState(false);
   const [currentReport, setCurrentReport] = useState<SeoReport | null>(null);
@@ -51,72 +46,17 @@ const Analyzer = () => {
     }
   };
 
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background radial glow */}
+      <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80 pointer-events-none">
+        <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-primary to-emerald-800 opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem] clip-path-polygon"></div>
+      </div>
 
-      {/* 🔥 HEADER */}
-      <header className="border-b border-border">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-
-          {/* LEFT */}
-          <div className="flex items-center gap-6">
-
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-              <Search className="h-6 w-6 text-secondary" />
-              <h1 className="text-xl font-heading font-bold">
-                SEO Toolkit
-              </h1>
-            </div>
-
-            {/* 🔥 NAVIGATION */}
-            <div className="flex gap-4 text-sm">
-
-              <button
-                onClick={() => navigate("/analyzer")}
-                className={`px-3 py-1 rounded-md transition ${
-                  location.pathname === "/analyzer"
-                    ? "bg-secondary text-white"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Analyzer
-              </button>
-
-              <button
-                onClick={() => navigate("/optimizer")}
-                className={`px-3 py-1 rounded-md transition ${
-                  location.pathname === "/optimizer"
-                    ? "bg-secondary text-white"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Optimizer
-              </button>
-
-            </div>
-          </div>
-
-          {/* RIGHT */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg border border-border bg-muted hover:bg-accent transition"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5 text-yellow-400" />
-            ) : (
-              <Moon className="h-5 w-5 text-foreground" />
-            )}
-          </button>
-
-        </div>
-      </header>
+      <Navbar />
 
       {/* MAIN */}
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-10">
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
