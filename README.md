@@ -1,73 +1,132 @@
-# Welcome to your Lovable project
+# 🚀 SEO Toolkit
 
-## Project info
+A modern **full-stack SEO toolkit** that helps users analyze websites and optimize content for better search engine performance.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Built with a focus on **clean UI, real-time analysis, and practical SEO insights**.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## ✨ Features
 
-**Use Lovable**
+### 🔍 Website Analyzer
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+* Analyze any website URL
+* SEO score with detailed breakdown
+* Title & meta description check
+* Heading structure analysis (H1, H2, H3)
+* Image alt text audit
+* Internal & external link analysis
+* Broken links detection
+* Keyword density analysis
+* Page load time measurement
+* Actionable SEO suggestions
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+### ✍️ Content Optimizer
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+* Optimize blog/article content using a target keyword
+* Keyword density calculation
+* Keyword position check (first 100 words)
+* Content length analysis
+* Heading structure detection
+* SEO score with suggestions
+* Keyword highlighting inside content
+* Visual progress indicators
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
+### 🎨 UI/UX
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+* Modern **SaaS dashboard design**
+* Dark mode (black + neon green theme)
+* Responsive layout
+* Smooth animations
+* Interactive score gauges
+* Clean card-based UI
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+---
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 🛠️ Tech Stack
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### Frontend
+
+* React (TypeScript)
+* Tailwind CSS
+* Framer Motion
+* ShadCN UI
+* Lucide Icons
+
+### Backend
+
+* Node.js
+* Express.js
+* Axios
+* Cheerio (HTML parsing)
+
+---
+
+## 📂 Project Structure
+
+```bash
+seo-hub/
+│
+├── public/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   │   ├── Analyzer.tsx
+│   │   ├── ContentOptimizer.tsx
+│   │   └── Index.tsx
+│   ├── hooks/
+│   ├── utils/
+│   ├── App.tsx
+│   └── main.tsx
+│
+├── server.cjs   # Backend server
+└── package.json
 ```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📊 Example Use Cases
 
-**Use GitHub Codespaces**
+* SEO audit for personal or client websites
+* Improving blog ranking with keyword optimization
+* Learning SEO fundamentals interactively
+* Portfolio project for full-stack development
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## 🚀 Future Improvements
 
-This project is built with:
+* AI-powered content suggestions
+* Competitor keyword analysis
+* Export SEO reports (PDF)
+* Google Lighthouse integration
+* SERP preview tool
+* Backlink analysis
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## 👨‍💻 Author
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+**Sahil Sarna**
+Computer Science Student at PEC, Chandigarh
+Passionate about building real-world full-stack applications
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
+## ⭐ Why this Project?
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+This project demonstrates:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+* Full-stack development skills
+* Real-world problem solving
+* Clean UI/UX design
+* API integration & data processing
+* Scalable feature-based architecture
+
+---
+
+
