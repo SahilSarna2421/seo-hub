@@ -29,15 +29,15 @@ const Index = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
             </span>
-            AI-Powered SEO Intelligence
+            Advanced SEO Intelligence
           </div>
           
           <h1 className="text-5xl sm:text-7xl font-heading font-bold tracking-tight text-foreground">
-            Smarter <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">SEO Toolkit</span>
+            Smart <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">SEO Toolkit</span>
           </h1>
           
           <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
-            Analyze websites, uncover technical issues, and optimize your content with real-time AI-powered insights to dominate search rankings.
+            Analyze websites, uncover technical issues, and optimize your content with real-time insights to dominate search rankings.
           </p>
         </motion.div>
 
