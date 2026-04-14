@@ -150,15 +150,41 @@ app.post("/analyze", async (req, res) => {
     if (internalLinks < 3) suggestions.push("Not enough internal links");
     if (brokenLinks.length > 0) suggestions.push("Broken links detected");
 
-    let score = 100;
+    // Calculate category scores
+    let metaTagsScore = 20;
+    let contentScore = 30;
+    let performanceScore = 20;
+    let linksScore = 30;
 
-    if (!title) score -= 15;
-    if (!metaDescription) score -= 15;
-    if (h1Count !== 1) score -= 10;
-    if (imagesWithoutAlt > 0) score -= 10;
-    if (wordCount < 300) score -= 15;
-    if (internalLinks < 3) score -= 10;
-    if (brokenLinks.length > 0) score -= 10;
+    // Meta Tags scoring (20 points max)
+    if (!title) metaTagsScore -= 10;
+    if (!metaDescription) metaTagsScore -= 10;
+    if (metaTagsScore < 0) metaTagsScore = 0;
+
+    // Content scoring (30 points max)
+    if (h1Count === 0) contentScore -= 10;
+    else if (h1Count > 1) contentScore -= 5;
+    if (wordCount < 300) contentScore -= 10;
+    else if (wordCount >= 600) contentScore += 5; // Bonus for longer content
+    if (imagesWithoutAlt > 0) contentScore -= 5;
+    if (contentScore < 0) contentScore = 0;
+    if (contentScore > 30) contentScore = 30;
+
+    // Performance scoring (20 points max)
+    if (loadTime > 3000) performanceScore -= 10;
+    else if (loadTime > 2000) performanceScore -= 5;
+    if (!hasViewport) performanceScore -= 5;
+    if (performanceScore < 0) performanceScore = 0;
+
+    // Links scoring (30 points max)
+    if (totalLinks === 0) linksScore -= 15;
+    else if (totalLinks < 5) linksScore -= 10;
+    if (internalLinks < 3) linksScore -= 10;
+    if (brokenLinks.length > 0) linksScore -= 5;
+    if (linksScore < 0) linksScore = 0;
+
+    // Calculate total score as sum of category scores
+    let score = metaTagsScore + contentScore + performanceScore + linksScore;
 
     if (score < 0) score = 0;
 
@@ -184,6 +210,12 @@ app.post("/analyze", async (req, res) => {
       keyword_density: keywordDensity,
       has_viewport: hasViewport,
       load_time_ms: loadTime,
+      score_breakdown: {
+        meta_tags: { score: metaTagsScore, max: 20 },
+        content: { score: contentScore, max: 30 },
+        performance: { score: performanceScore, max: 20 },
+        links: { score: linksScore, max: 30 }
+      },
       suggestions,
       created_at: new Date().toISOString(),
     };
@@ -278,6 +310,14 @@ app.post("/optimize", (req, res) => {
     if (score > 95) score = 95;
     if (score < 0) score = 0;
 
+    // Calculate readability metrics
+    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const totalSentences = sentences.length;
+    const words = content.split(/\s+/).filter(w => w.length > 0);
+    const totalWords = words.length;
+    const averageWordsPerSentence = totalSentences > 0 ? totalWords / totalSentences : 0;
+    const readabilityScore = Math.max(0, Math.min(100, Math.round(100 - (averageWordsPerSentence * 1.5))));
+
     res.json({
       keyword,
       total_words: totalWords,
@@ -287,6 +327,13 @@ app.post("/optimize", (req, res) => {
       has_headings: hasHeading,
       score,
       suggestions,
+      readability: {
+        score: readabilityScore,
+        total_sentences: totalSentences,
+        total_words: totalWords,
+        average_words_per_sentence: Math.round(averageWordsPerSentence * 100) / 100,
+        label: readabilityScore >= 70 ? "Easy" : readabilityScore >= 40 ? "Medium" : "Hard"
+      }
     });
 
   } catch (error) {

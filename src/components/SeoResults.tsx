@@ -47,6 +47,13 @@ export type SeoReport = {
     density: string;
   }[];
 
+  score_breakdown?: {
+    meta_tags: { score: number; max: number };
+    content: { score: number; max: number };
+    performance: { score: number; max: number };
+    links: { score: number; max: number };
+  };
+
   seo_breakdown?: {
     factor: string;
     status: 'good' | 'warning' | 'bad';
@@ -185,6 +192,59 @@ export const SeoResults = ({ report }: { report: SeoReport }) => {
 
         </CardContent>
       </Card>
+
+      {/* SCORE BREAKDOWN */}
+      {report.score_breakdown && (
+        <Card className="rounded-2xl border-border/50 shadow-sm overflow-hidden">
+          <CardHeader>
+            <CardTitle className="font-heading text-xl font-bold">Score Breakdown</CardTitle>
+            <p className="text-sm text-muted-foreground">Detailed analysis by category</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border">
+                <div className="flex items-center gap-3">
+                  <Type className="h-5 w-5 text-primary" />
+                  <span className="font-medium">Meta Tags</span>
+                </div>
+                <span className="text-lg font-bold text-primary">
+                  {report.score_breakdown.meta_tags.score}/{report.score_breakdown.meta_tags.max}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border">
+                <div className="flex items-center gap-3">
+                  <AlignLeft className="h-5 w-5 text-primary" />
+                  <span className="font-medium">Content</span>
+                </div>
+                <span className="text-lg font-bold text-primary">
+                  {report.score_breakdown.content.score}/{report.score_breakdown.content.max}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <span className="font-medium">Performance</span>
+                </div>
+                <span className="text-lg font-bold text-primary">
+                  {report.score_breakdown.performance.score}/{report.score_breakdown.performance.max}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border">
+                <div className="flex items-center gap-3">
+                  <Link className="h-5 w-5 text-primary" />
+                  <span className="font-medium">Links</span>
+                </div>
+                <span className="text-lg font-bold text-primary">
+                  {report.score_breakdown.links.score}/{report.score_breakdown.links.max}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* SEO BREAKDOWN */}
       {report.seo_breakdown && (
