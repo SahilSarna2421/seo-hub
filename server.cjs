@@ -38,6 +38,10 @@ app.post("/analyze", async (req, res) => {
     const html = response.data;
     const $ = cheerio.load(html);
 
+    // Calculate page size in KB
+    const pageSizeBytes = Buffer.byteLength(html, 'utf8');
+    const pageSizeKB = Math.round(pageSizeBytes / 1024);
+
     const title = $("title").first().text().trim() || null;
 
     const metaDescription =
@@ -69,6 +73,9 @@ app.post("/analyze", async (req, res) => {
         imagesWithoutAlt++;
       }
     });
+
+    const imagesWithAlt = totalImages - imagesWithoutAlt;
+    const imageOptimizationPercentage = totalImages > 0 ? Math.round((imagesWithAlt / totalImages) * 100) : 0;
 
     const links = $("a");
     const totalLinks = links.length;
@@ -138,17 +145,34 @@ app.post("/analyze", async (req, res) => {
         density: ((count / words.length) * 100).toFixed(2)
       }));
 
+    const hasTitle = !!title;
+    const hasMetaDescription = !!metaDescription;
+    const hasH1 = h1Count > 0;
+
     const hasViewport = $('meta[name="viewport"]').length > 0;
 
     const suggestions = [];
 
-    if (!title) suggestions.push("Missing title tag");
-    if (!metaDescription) suggestions.push("Missing meta description");
-    if (h1Count === 0) suggestions.push("No H1 tag found");
+    if (!hasTitle) suggestions.push("Add a title tag");
+    if (!hasMetaDescription) suggestions.push("Add meta description");
+    if (!hasH1) suggestions.push("Include at least one H1 tag");
     if (wordCount < 300) suggestions.push("Content is too short");
-    if (imagesWithoutAlt > 0) suggestions.push("Images missing alt text");
+    if (imagesWithoutAlt > 0) suggestions.push("Add alt text to images for better SEO");
     if (internalLinks < 3) suggestions.push("Not enough internal links");
+    if (externalLinks > internalLinks * 2) suggestions.push("Maintain a balance of internal and external links");
     if (brokenLinks.length > 0) suggestions.push("Broken links detected");
+    if (pageSizeKB > 500) suggestions.push("Page size is large, may affect performance");
+
+    // Check for duplicate title and meta description
+    if (title && metaDescription) {
+      const titleLower = title.toLowerCase().trim();
+      const metaLower = metaDescription.toLowerCase().trim();
+      if (titleLower === metaLower || 
+          metaLower.includes(titleLower) || 
+          titleLower.includes(metaLower)) {
+        suggestions.push("Title and meta description should be unique");
+      }
+    }
 
     // Calculate category scores
     let metaTagsScore = 20;
@@ -194,6 +218,9 @@ app.post("/analyze", async (req, res) => {
       seo_score: score,
       title,
       meta_description: metaDescription,
+      has_title: hasTitle,
+      has_meta_description: hasMetaDescription,
+      has_h1: hasH1,
       h1_count: h1Count,
       h1_tags: h1Tags,
       h2_count: h2Count,
@@ -201,6 +228,8 @@ app.post("/analyze", async (req, res) => {
       heading_analysis: headingAnalysis,
       total_images: totalImages,
       images_without_alt: imagesWithoutAlt,
+      image_optimization_percentage: imageOptimizationPercentage,
+      page_size_kb: pageSizeKB,
       total_links: totalLinks,
       internal_links: internalLinks,
       external_links: externalLinks,

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import {
   FileText, Type, Hash, Image, Link, AlignLeft, Clock,
-  CheckCircle2, AlertTriangle, XCircle
+  CheckCircle2, AlertTriangle, XCircle, ExternalLink, ArrowRight
 } from 'lucide-react';
 
 export type SeoReport = {
@@ -13,6 +13,9 @@ export type SeoReport = {
   seo_score: number;
   title: string | null;
   meta_description: string | null;
+  has_title?: boolean;
+  has_meta_description?: boolean;
+  has_h1?: boolean;
 
   h1_count: number;
   h1_tags?: string[];
@@ -29,6 +32,8 @@ export type SeoReport = {
 
   images_without_alt: number;
   total_images: number;
+  image_optimization_percentage?: number;
+  page_size_kb?: number;
 
   total_links: number;
   internal_links?: number;
@@ -145,30 +150,6 @@ export const SeoResults = ({ report }: { report: SeoReport }) => {
           />
 
           <MetricCard
-            icon={Image}
-            label="Images without Alt"
-            value={`${report.images_without_alt} / ${report.total_images}`}
-            status={
-              report.images_without_alt === 0
-                ? 'good'
-                : report.images_without_alt <= 2
-                ? 'warning'
-                : 'bad'
-            }
-          />
-
-          <MetricCard
-            icon={Link}
-            label="Total Links"
-            value={
-              report.internal_links !== undefined
-                ? `${report.total_links} (Int: ${report.internal_links}, Ext: ${report.external_links})`
-                : report.total_links
-            }
-            status={report.total_links > 0 ? 'good' : 'warning'}
-          />
-
-          <MetricCard
             icon={AlignLeft}
             label="Word Count"
             value={report.word_count}
@@ -190,6 +171,223 @@ export const SeoResults = ({ report }: { report: SeoReport }) => {
             />
           )}
 
+          {report.page_size_kb !== undefined && (
+            <MetricCard
+              icon={FileText}
+              label="Page Size"
+              value={`${report.page_size_kb} KB`}
+              status={report.page_size_kb <= 500 ? 'good' : 'warning'}
+            />
+          )}
+
+        </CardContent>
+      </Card>
+
+      {/* SEO ELEMENTS STATUS */}
+      <Card className="rounded-2xl border-border/50 shadow-sm overflow-hidden">
+        <CardHeader>
+          <CardTitle className="font-heading text-xl font-bold">Essential SEO Elements</CardTitle>
+          <p className="text-sm text-muted-foreground">Critical elements for search engine optimization</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <Type className="h-5 w-5 text-primary" />
+                <div>
+                  <span className="font-medium">Title Tag</span>
+                  <p className="text-sm text-muted-foreground">HTML title element</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium ${report.has_title ? 'text-green-600' : 'text-red-600'}`}>
+                  {report.has_title ? 'Present' : 'Missing'}
+                </span>
+                {report.has_title ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-red-600" />
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <FileText className="h-5 w-5 text-primary" />
+                <div>
+                  <span className="font-medium">Meta Description</span>
+                  <p className="text-sm text-muted-foreground">Meta description tag</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium ${report.has_meta_description ? 'text-green-600' : 'text-red-600'}`}>
+                  {report.has_meta_description ? 'Present' : 'Missing'}
+                </span>
+                {report.has_meta_description ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-red-600" />
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <Hash className="h-5 w-5 text-primary" />
+                <div>
+                  <span className="font-medium">H1 Tag</span>
+                  <p className="text-sm text-muted-foreground">At least one H1 heading</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium ${report.has_h1 ? 'text-green-600' : 'text-red-600'}`}>
+                  {report.has_h1 ? 'Present' : 'Missing'}
+                </span>
+                {report.has_h1 ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-red-600" />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Suggestions for missing elements */}
+          {(!report.has_title || !report.has_meta_description || !report.has_h1) && (
+            <div className="mt-6 p-4 rounded-lg bg-red-50 border border-red-200">
+              <h4 className="font-medium text-red-800 mb-2">Suggestions:</h4>
+              <ul className="space-y-1 text-sm text-red-700">
+                {!report.has_title && <li>• Add a title tag</li>}
+                {!report.has_meta_description && <li>• Add meta description</li>}
+                {!report.has_h1 && <li>• Include at least one H1 tag</li>}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* IMAGE SEO ANALYSIS */}
+      <Card className="rounded-2xl border-border/50 shadow-sm overflow-hidden">
+        <CardHeader>
+          <CardTitle className="font-heading text-xl font-bold">Image SEO Analysis</CardTitle>
+          <p className="text-sm text-muted-foreground">Image optimization and accessibility analysis</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <Image className="h-5 w-5 text-primary" />
+                <div>
+                  <span className="font-medium">Total Images</span>
+                  <p className="text-sm text-muted-foreground">Number of images on the page</p>
+                </div>
+              </div>
+              <span className="text-lg font-bold text-primary">
+                {report.total_images}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 text-primary" />
+                <div>
+                  <span className="font-medium">Missing ALT</span>
+                  <p className="text-sm text-muted-foreground">Images without alt text</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`text-lg font-bold ${report.images_without_alt === 0 ? 'text-green-600' : report.images_without_alt <= 2 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  {report.images_without_alt}
+                </span>
+                {report.images_without_alt === 0 ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                ) : report.images_without_alt <= 2 ? (
+                  <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-red-600" />
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-primary" />
+                <div>
+                  <span className="font-medium">Optimization %</span>
+                  <p className="text-sm text-muted-foreground">Images with alt text</p>
+                </div>
+              </div>
+              <span className={`text-lg font-bold ${report.image_optimization_percentage === 100 ? 'text-green-600' : report.image_optimization_percentage >= 80 ? 'text-yellow-600' : 'text-red-600'}`}>
+                {report.image_optimization_percentage || 0}%
+              </span>
+            </div>
+          </div>
+
+          {/* Suggestion for missing alt text */}
+          {report.images_without_alt > 0 && (
+            <div className="mt-6 p-4 rounded-lg bg-red-50 border border-red-200">
+              <h4 className="font-medium text-red-800 mb-2">Suggestion:</h4>
+              <p className="text-sm text-red-700">Add alt text to images for better SEO</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* LINK ANALYSIS */}
+      <Card className="rounded-2xl border-border/50 shadow-sm overflow-hidden">
+        <CardHeader>
+          <CardTitle className="font-heading text-xl font-bold">Link Analysis</CardTitle>
+          <p className="text-sm text-muted-foreground">Internal and external link distribution</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <Link className="h-5 w-5 text-primary" />
+                <div>
+                  <span className="font-medium">Total Links</span>
+                  <p className="text-sm text-muted-foreground">All links on the page</p>
+                </div>
+              </div>
+              <span className="text-lg font-bold text-primary">
+                {report.total_links}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <ArrowRight className="h-5 w-5 text-green-600" />
+                <div>
+                  <span className="font-medium">Internal Links</span>
+                  <p className="text-sm text-muted-foreground">Links within your domain</p>
+                </div>
+              </div>
+              <span className="text-lg font-bold text-green-600">
+                {report.internal_links || 0}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <ExternalLink className="h-5 w-5 text-blue-600" />
+                <div>
+                  <span className="font-medium">External Links</span>
+                  <p className="text-sm text-muted-foreground">Links to other domains</p>
+                </div>
+              </div>
+              <span className="text-lg font-bold text-blue-600">
+                {report.external_links || 0}
+              </span>
+            </div>
+          </div>
+
+          {/* Suggestion for link balance */}
+          {report.external_links && report.internal_links && report.external_links > report.internal_links * 2 && (
+            <div className="mt-6 p-4 rounded-lg bg-yellow-50 border border-yellow-200">
+              <h4 className="font-medium text-yellow-800 mb-2">Suggestion:</h4>
+              <p className="text-sm text-yellow-700">Maintain a balance of internal and external links</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
