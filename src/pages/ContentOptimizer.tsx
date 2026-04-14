@@ -23,7 +23,7 @@ const ContentOptimizer = () => {
     setResult(null);
 
     try {
-      const res = await fetch("http://localhost:5000/optimize", {
+      const res = await fetch("https://seo-hub.onrender.com/optimize", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,18 +58,15 @@ const ContentOptimizer = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Background radial glow */}
       <div className="absolute inset-x-0 top-0 -z-10 transform-gpu overflow-hidden blur-3xl pointer-events-none">
         <div className="relative left-[calc(50%+11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-bl from-primary to-emerald-900 opacity-20 sm:left-[calc(50%+30rem)] sm:w-[72.1875rem] clip-path-polygon"></div>
       </div>
 
       <Navbar />
 
-      {/* MAIN */}
       <div className="px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-6">
 
-          {/* HEADER */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -83,7 +80,6 @@ const ContentOptimizer = () => {
             </p>
           </motion.div>
 
-          {/* INPUT */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -143,7 +139,6 @@ const ContentOptimizer = () => {
             </Card>
           </motion.div>
 
-          {/* RESULTS */}
           {result && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -151,7 +146,6 @@ const ContentOptimizer = () => {
               className="space-y-6"
             >
 
-              {/* SCORE */}
               <Card className="rounded-2xl border-border/50 shadow-sm border-t border-t-primary/20 bg-gradient-to-b from-primary/5 to-transparent">
                 <CardHeader className="flex flex-row items-center justify-between pb-6">
                   <div>
@@ -200,6 +194,7 @@ const ContentOptimizer = () => {
                         }`}
                       />
                     </div>
+
                     <div className="flex justify-between items-center mt-1">
                       <p className={`text-xs font-medium ${
                         result.keyword_density_status === "optimal"
@@ -217,13 +212,11 @@ const ContentOptimizer = () => {
                 </CardContent>
               </Card>
 
-              {/* KEYWORD PLACEMENT */}
               <KeywordPlacement
                 inStart={result.keyword_placement.inStart}
                 inEnd={result.keyword_placement.inEnd}
               />
 
-              {/* CONTENT STRUCTURE */}
               <ContentStructure
                 h1Count={result.content_structure.h1Count}
                 h2Count={result.content_structure.h2Count}
@@ -231,16 +224,13 @@ const ContentOptimizer = () => {
                 hasHeadings={result.content_structure.hasHeadings}
               />
 
-              {/* READABILITY ANALYSIS */}
               <ReadabilityAnalysis readability={result.readability} />
 
-              {/* SUGGESTED KEYWORDS */}
               <SuggestedKeywords
                 keywords={result.keyword_suggestions}
                 mainKeyword={result.keyword}
               />
 
-              {/* SUGGESTIONS */}
               {result.suggestions.length > 0 && (
                 <Card className="rounded-2xl border-border/50 shadow-sm border-t border-t-yellow-500/20">
                   <CardHeader className="pb-4">
