@@ -271,15 +271,23 @@ app.post("/optimize", (req, res) => {
 
     let score = 100;
 
-    // Density
-    if (density < 0.5) {
-      score -= 10;
-      suggestions.push("Increase keyword usage (too low)");
-    } else if (density > 5) {
+    // Improved density validation
+    let densityStatus = "optimal";
+    let densityMessage = "Optimal keyword density";
+
+    if (density < 1) {
       score -= 15;
-      suggestions.push("Reduce keyword usage (keyword stuffing)");
-    } else if (density >= 1 && density <= 3) {
-      score += 5;
+      suggestions.push("Increase keyword usage");
+      densityStatus = "low";
+      densityMessage = "Keyword density too low";
+    } else if (density > 2.5) {
+      score -= 20;
+      suggestions.push("Keyword stuffing detected");
+      densityStatus = "high";
+      densityMessage = "Keyword stuffing detected";
+    } else {
+      densityStatus = "optimal";
+      densityMessage = "Optimal keyword density";
     }
 
     // Position
@@ -306,6 +314,73 @@ app.post("/optimize", (req, res) => {
       score += 5;
     }
 
+    // Keyword placement analysis
+    const placementFirst100Words = words.slice(0, 100).join(' ');
+    const placementLast100Words = words.slice(-100).join(' ');
+    const inStart = placementFirst100Words.toLowerCase().includes(keywordLower);
+    const inEnd = placementLast100Words.toLowerCase().includes(keywordLower);
+
+    // Add placement suggestions
+    if (!inStart) {
+      suggestions.push("Add keyword in introduction");
+    }
+    if (!inEnd) {
+      suggestions.push("Include keyword near conclusion");
+    }
+
+    // Heading structure analysis
+    const lines = content.split('\n');
+    let h1Count = 0;
+    let h2Count = 0;
+    let h3Count = 0;
+
+    lines.forEach(line => {
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith('###')) {
+        h3Count++;
+      } else if (trimmedLine.startsWith('##')) {
+        h2Count++;
+      } else if (trimmedLine.startsWith('#')) {
+        h1Count++;
+      }
+    });
+
+    const totalHeadings = h1Count + h2Count + h3Count;
+    const hasHeadings = totalHeadings > 0;
+
+    // Add heading suggestion if no headings found
+    if (!hasHeadings) {
+      suggestions.push("Add headings to improve structure");
+    }
+
+    // Generate keyword suggestions
+    const keywordSuggestions = [];
+    const baseKeyword = keyword.toLowerCase().trim();
+
+    // Add plural form
+    if (!baseKeyword.endsWith('s') && !baseKeyword.endsWith('es')) {
+      keywordSuggestions.push(baseKeyword + 's');
+    }
+
+    // Common variations and modifiers
+    const modifiers = ['guide', 'tips', 'best', 'how to', 'ultimate', 'complete', 'easy', 'quick', 'top', 'free'];
+    modifiers.forEach(modifier => {
+      keywordSuggestions.push(`${modifier} ${baseKeyword}`);
+      if (!baseKeyword.endsWith('s')) {
+        keywordSuggestions.push(`${modifier} ${baseKeyword}s`);
+      }
+    });
+
+    // Add some common question-based keywords
+    const questions = ['what is', 'how to', 'why', 'when to'];
+    questions.forEach(question => {
+      keywordSuggestions.push(`${question} ${baseKeyword}`);
+    });
+
+    // Remove duplicates and limit to 5-8 suggestions
+    const uniqueSuggestions = [...new Set(keywordSuggestions)];
+    const finalSuggestions = uniqueSuggestions.slice(0, Math.min(8, Math.max(5, uniqueSuggestions.length)));
+
     // 🔥 REALISTIC CAP
     if (score > 95) score = 95;
     if (score < 0) score = 0;
@@ -313,9 +388,9 @@ app.post("/optimize", (req, res) => {
     // Calculate readability metrics
     const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
     const totalSentences = sentences.length;
-    const words = content.split(/\s+/).filter(w => w.length > 0);
-    const totalWords = words.length;
-    const averageWordsPerSentence = totalSentences > 0 ? totalWords / totalSentences : 0;
+    const readabilityWords = content.split(/\s+/).filter(w => w.length > 0);
+    const readabilityTotalWords = readabilityWords.length;
+    const averageWordsPerSentence = totalSentences > 0 ? readabilityTotalWords / totalSentences : 0;
     const readabilityScore = Math.max(0, Math.min(100, Math.round(100 - (averageWordsPerSentence * 1.5))));
 
     res.json({
@@ -323,14 +398,28 @@ app.post("/optimize", (req, res) => {
       total_words: totalWords,
       keyword_count: keywordCount,
       keyword_density: density.toFixed(2),
+      keyword_density_status: densityStatus,
+      keyword_density_message: densityMessage,
       keyword_in_start: keywordInStart,
       has_headings: hasHeading,
       score,
       suggestions,
+      keyword_suggestions: finalSuggestions,
+      keyword_placement: {
+        inStart,
+        inEnd,
+      },
+      content_structure: {
+        h1Count,
+        h2Count,
+        h3Count,
+        totalHeadings,
+        hasHeadings,
+      },
       readability: {
         score: readabilityScore,
         total_sentences: totalSentences,
-        total_words: totalWords,
+        total_words: readabilityTotalWords,
         average_words_per_sentence: Math.round(averageWordsPerSentence * 100) / 100,
         label: readabilityScore >= 70 ? "Easy" : readabilityScore >= 40 ? "Medium" : "Hard"
       }

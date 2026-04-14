@@ -5,6 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
 import { Search, FileText, Loader2, Highlighter, AlertTriangle, XCircle } from "lucide-react";
+import { KeywordPlacement } from "@/components/KeywordPlacement";
+import { ContentStructure } from "@/components/ContentStructure";
+import { SuggestedKeywords } from "@/components/SuggestedKeywords";
+import { ReadabilityAnalysis } from "@/components/ReadabilityAnalysis";
 
 const ContentOptimizer = () => {
   const [keyword, setKeyword] = useState("");
@@ -188,35 +192,53 @@ const ContentOptimizer = () => {
                         animate={{ width: `${Math.min(parseFloat(result.keyword_density) * 20, 100)}%` }}
                         transition={{ duration: 1, delay: 0.5 }}
                         className={`h-full rounded-full ${
-                          parseFloat(result.keyword_density) >= 1 && parseFloat(result.keyword_density) <= 2.5 
-                            ? "bg-primary" 
-                            : "bg-yellow-500"
+                          result.keyword_density_status === "optimal"
+                            ? "bg-green-500"
+                            : result.keyword_density_status === "low"
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
                         }`}
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground text-right mt-1">Optimal: 1% - 2.5%</p>
+                    <div className="flex justify-between items-center mt-1">
+                      <p className={`text-xs font-medium ${
+                        result.keyword_density_status === "optimal"
+                          ? "text-green-600"
+                          : result.keyword_density_status === "low"
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                      }`}>
+                        {result.keyword_density_message}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Optimal: 1% - 2.5%</p>
+                    </div>
                   </div>
 
                 </CardContent>
               </Card>
 
-              {/* HIGHLIGHT */}
-              <Card className="rounded-2xl border-border/50 shadow-sm overflow-hidden">
-                <CardHeader className="bg-muted/20 border-b border-border/30 pb-4">
-                  <CardTitle className="text-lg font-heading flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500">
-                      <Highlighter className="h-4 w-4" />
-                    </div>
-                    Content Preview
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div
-                    className="p-6 text-base leading-loose whitespace-pre-wrap bg-background font-body max-h-[400px] overflow-y-auto custom-scrollbar"
-                    dangerouslySetInnerHTML={{ __html: getHighlightedText() }}
-                  />
-                </CardContent>
-              </Card>
+              {/* KEYWORD PLACEMENT */}
+              <KeywordPlacement
+                inStart={result.keyword_placement.inStart}
+                inEnd={result.keyword_placement.inEnd}
+              />
+
+              {/* CONTENT STRUCTURE */}
+              <ContentStructure
+                h1Count={result.content_structure.h1Count}
+                h2Count={result.content_structure.h2Count}
+                h3Count={result.content_structure.h3Count}
+                hasHeadings={result.content_structure.hasHeadings}
+              />
+
+              {/* READABILITY ANALYSIS */}
+              <ReadabilityAnalysis readability={result.readability} />
+
+              {/* SUGGESTED KEYWORDS */}
+              <SuggestedKeywords
+                keywords={result.keyword_suggestions}
+                mainKeyword={result.keyword}
+              />
 
               {/* SUGGESTIONS */}
               {result.suggestions.length > 0 && (
