@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 import Index from "./pages/Index"; // Home page
 import Analyzer from "./pages/Analyzer"; // ✅ NEW
+import CompetitorAnalysis from "./pages/CompetitorAnalysis";
 import ContentOptimizer from "./pages/ContentOptimizer"; // ✅ NEW
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,9 @@ const App = () => (
 
             {/* 🔍 Website Analyzer */}
             <Route path="/analyzer" element={<Analyzer />} />
+
+            {/* 📊 Competitor Analysis */}
+            <Route path="/competitor" element={<CompetitorAnalysis />} />
 
             {/* ✍️ Content Optimizer */}
             <Route path="/optimizer" element={<ContentOptimizer />} />

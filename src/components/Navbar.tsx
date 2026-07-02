@@ -15,6 +15,7 @@ export const Navbar = () => {
   const navLinks = [
     { label: "Home", path: "/" },
     { label: "Analyzer", path: "/analyzer" },
+    { label: "Competitor", path: "/competitor" },
     { label: "Optimizer", path: "/optimizer" },
   ];
 

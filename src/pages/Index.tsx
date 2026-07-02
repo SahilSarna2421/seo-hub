@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
-import { Search, FileText, ArrowRight } from "lucide-react";
+import { Search, FileText, BarChart3, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Index = () => {
@@ -16,9 +16,9 @@ const Index = () => {
       <Navbar />
 
       <main className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 relative z-10">
-        
+
         {/* HERO SECTION */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -31,19 +31,24 @@ const Index = () => {
             </span>
             Advanced SEO Intelligence
           </div>
-          
+
           <h1 className="text-5xl sm:text-7xl font-heading font-bold tracking-tight text-foreground">
-            Smart <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">SEO Toolkit</span>
+            Smart{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">
+              SEO Toolkit
+            </span>
           </h1>
-          
+
           <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
-            Analyze websites, uncover technical issues, and optimize your content with real-time insights to dominate search rankings.
+            Analyze websites, uncover technical issues, and optimize your content
+            with real-time insights to dominate search rankings.
           </p>
         </motion.div>
 
         {/* FEATURE CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl">
-          
+
+          {/* Website Analyzer */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -54,21 +59,27 @@ const Index = () => {
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
               <Search className="h-40 w-40 text-primary -translate-y-10 translate-x-10" />
             </div>
-            
+
             <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
               <Search className="h-7 w-7 text-primary" />
             </div>
-            
-            <h2 className="text-2xl font-bold font-heading mb-3">Website Analyzer</h2>
+
+            <h2 className="text-2xl font-bold font-heading mb-3">
+              Website Analyzer
+            </h2>
+
             <p className="text-muted-foreground leading-relaxed mb-8 relative z-10">
-              Run comprehensive technical SEO audits. Discover broken links, missing meta tags, heading structures, and performance metrics instantly.
+              Run comprehensive technical SEO audits. Discover broken links,
+              missing meta tags, heading structures, and performance metrics
+              instantly.
             </p>
-            
+
             <div className="mt-auto flex items-center text-primary font-medium group-hover:translate-x-2 transition-transform">
               Start Analyzing <ArrowRight className="ml-2 h-4 w-4" />
             </div>
           </motion.div>
 
+          {/* Content Optimizer */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -79,18 +90,53 @@ const Index = () => {
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
               <FileText className="h-40 w-40 text-primary -translate-y-10 translate-x-10" />
             </div>
-            
+
             <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
               <FileText className="h-7 w-7 text-primary" />
             </div>
-            
-            <h2 className="text-2xl font-bold font-heading mb-3">Content Optimizer</h2>
+
+            <h2 className="text-2xl font-bold font-heading mb-3">
+              Content Optimizer
+            </h2>
+
             <p className="text-muted-foreground leading-relaxed mb-8 relative z-10">
-              Write perfectly optimized articles. Track keyword density, analyze readability, and follow real-time suggestions to rank higher.
+              Write perfectly optimized articles. Track keyword density, analyze
+              readability, and follow real-time suggestions to rank higher.
             </p>
-            
+
             <div className="mt-auto flex items-center text-primary font-medium group-hover:translate-x-2 transition-transform">
               Optimize Content <ArrowRight className="ml-2 h-4 w-4" />
+            </div>
+          </motion.div>
+
+          {/* Competitor Analysis */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            onClick={() => navigate("/competitor")}
+            className="group cursor-pointer rounded-2xl border border-border/50 bg-card p-8 shadow-sm hover:shadow-glow hover:border-primary/50 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden flex flex-col items-start text-left md:col-span-2 lg:col-span-1"
+          >
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+              <BarChart3 className="h-40 w-40 text-primary -translate-y-10 translate-x-10" />
+            </div>
+
+            <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+              <BarChart3 className="h-7 w-7 text-primary" />
+            </div>
+
+            <h2 className="text-2xl font-bold font-heading mb-3">
+              Competitor Analysis
+            </h2>
+
+            <p className="text-muted-foreground leading-relaxed mb-8 relative z-10">
+              Compare your website against competitors to identify SEO strengths,
+              weaknesses, and opportunities. View side-by-side metrics and improve
+              your search performance.
+            </p>
+
+            <div className="mt-auto flex items-center text-primary font-medium group-hover:translate-x-2 transition-transform">
+              Compare Websites <ArrowRight className="ml-2 h-4 w-4" />
             </div>
           </motion.div>
 
