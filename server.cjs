@@ -9,252 +9,261 @@ app.use(cors());
 app.use(express.json());
 
 /* ===========================
-   🔍 WEBSITE ANALYZER
+  🔍 WEBSITE ANALYZER
 =========================== */
+
+async function analyzeWebsite(url) {
+  let finalUrl = url;
+
+  if (!finalUrl.startsWith("http")) {
+   finalUrl = "https://" + finalUrl;
+  }
+
+  const startTime = Date.now();
+
+  const response = await axios.get(finalUrl, {
+   headers: {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+   },
+   timeout: 10000,
+  });
+
+  const loadTime = Date.now() - startTime;
+
+  const html = response.data;
+  const $ = cheerio.load(html);
+
+  // Calculate page size in KB
+  const pageSizeBytes = Buffer.byteLength(html, 'utf8');
+  const pageSizeKB = Math.round(pageSizeBytes / 1024);
+
+  const title = $("title").first().text().trim() || null;
+
+  const metaDescription =
+   $('meta[name="description"]').attr("content")?.trim() || null;
+
+  const h1Tags = $("h1").map((i, el) => $(el).text().trim()).get();
+  const h1Count = h1Tags.length;
+  const h2Count = $("h2").length;
+  const h3Count = $("h3").length;
+
+  const headingAnalysis = {
+   h1: h1Count,
+   h2: h2Count,
+   h3: h3Count,
+   issues: [],
+  };
+
+  if (h1Count === 0) headingAnalysis.issues.push("Missing H1 tag");
+  if (h1Count > 1) headingAnalysis.issues.push("Multiple H1 tags");
+  if (h2Count === 0) headingAnalysis.issues.push("No H2 tags found");
+
+  const images = $("img");
+  const totalImages = images.length;
+
+  let imagesWithoutAlt = 0;
+  images.each((i, el) => {
+   const alt = $(el).attr("alt");
+   if (!alt || alt.trim() === "") {
+    imagesWithoutAlt++;
+   }
+  });
+
+  const imagesWithAlt = totalImages - imagesWithoutAlt;
+  const imageOptimizationPercentage = totalImages > 0 ? Math.round((imagesWithAlt / totalImages) * 100) : 0;
+
+  const links = $("a");
+  const totalLinks = links.length;
+
+  let internalLinks = 0;
+  let externalLinks = 0;
+  const linkList = [];
+
+  links.each((i, el) => {
+   const href = $(el).attr("href");
+   if (!href) return;
+
+   linkList.push(href);
+
+   if (
+    href.startsWith("/") ||
+    href.includes(new URL(finalUrl).hostname)
+   ) {
+    internalLinks++;
+   } else {
+    externalLinks++;
+   }
+  });
+
+  const brokenLinks = [];
+  const linksToCheck = linkList.slice(0, 15);
+
+  await Promise.all(
+   linksToCheck.map(async (link) => {
+    try {
+      if (!link.startsWith("http")) return;
+
+      const res = await axios.head(link, { timeout: 3000 });
+      if (res.status >= 400) {
+       brokenLinks.push(link);
+      }
+    } catch {
+      brokenLinks.push(link);
+    }
+   })
+  );
+
+  const text = $("body").text().replace(/\s+/g, " ").trim();
+  const wordCount = text ? text.split(" ").length : 0;
+
+  const stopWords = new Set([
+   "the","is","in","and","to","of","a","for","on","with","as","by","an","at","be","this","that","it","from","or","are"
+  ]);
+
+  const words = text
+   .toLowerCase()
+   .replace(/[^\w\s]/g, "")
+   .split(/\s+/)
+   .filter(word => word.length > 2 && !stopWords.has(word));
+
+  const freqMap = {};
+  words.forEach(word => {
+   freqMap[word] = (freqMap[word] || 0) + 1;
+  });
+
+  const keywordDensity = Object.entries(freqMap)
+   .sort((a, b) => b[1] - a[1])
+   .slice(0, 10)
+   .map(([word, count]) => ({
+    keyword: word,
+    count,
+    density: ((count / words.length) * 100).toFixed(2)
+   }));
+
+  const hasTitle = !!title;
+  const hasMetaDescription = !!metaDescription;
+  const hasH1 = h1Count > 0;
+
+  const hasViewport = $('meta[name="viewport"]').length > 0;
+
+  const suggestions = [];
+
+  if (!hasTitle) suggestions.push("Add a title tag");
+  if (!hasMetaDescription) suggestions.push("Add meta description");
+  if (!hasH1) suggestions.push("Include at least one H1 tag");
+  if (wordCount < 300) suggestions.push("Content is too short");
+  if (imagesWithoutAlt > 0) suggestions.push("Add alt text to images for better SEO");
+  if (internalLinks < 3) suggestions.push("Not enough internal links");
+  if (externalLinks > internalLinks * 2) suggestions.push("Maintain a balance of internal and external links");
+  if (brokenLinks.length > 0) suggestions.push("Broken links detected");
+  if (pageSizeKB > 500) suggestions.push("Page size is large, may affect performance");
+
+  // Check for duplicate title and meta description
+  if (title && metaDescription) {
+   const titleLower = title.toLowerCase().trim();
+   const metaLower = metaDescription.toLowerCase().trim();
+   if (titleLower === metaLower || 
+      metaLower.includes(titleLower) || 
+      titleLower.includes(metaLower)) {
+    suggestions.push("Title and meta description should be unique");
+   }
+  }
+
+  // Calculate category scores
+  let metaTagsScore = 20;
+  let contentScore = 30;
+  let performanceScore = 20;
+  let linksScore = 30;
+
+  // Meta Tags scoring (20 points max)
+  if (!title) metaTagsScore -= 10;
+  if (!metaDescription) metaTagsScore -= 10;
+  if (metaTagsScore < 0) metaTagsScore = 0;
+
+  // Content scoring (30 points max)
+  if (h1Count === 0) contentScore -= 10;
+  else if (h1Count > 1) contentScore -= 5;
+  if (wordCount < 300) contentScore -= 10;
+  else if (wordCount >= 600) contentScore += 5; // Bonus for longer content
+  if (imagesWithoutAlt > 0) contentScore -= 5;
+  if (contentScore < 0) contentScore = 0;
+  if (contentScore > 30) contentScore = 30;
+
+  // Performance scoring (20 points max)
+  if (loadTime > 3000) performanceScore -= 10;
+  else if (loadTime > 2000) performanceScore -= 5;
+  if (!hasViewport) performanceScore -= 5;
+  if (performanceScore < 0) performanceScore = 0;
+
+  // Links scoring (30 points max)
+  if (totalLinks === 0) linksScore -= 15;
+  else if (totalLinks < 5) linksScore -= 10;
+  if (internalLinks < 3) linksScore -= 10;
+  if (brokenLinks.length > 0) linksScore -= 5;
+  if (linksScore < 0) linksScore = 0;
+
+  // Calculate total score as sum of category scores
+  let score = metaTagsScore + contentScore + performanceScore + linksScore;
+
+  if (score < 0) score = 0;
+
+  return {
+   id: Date.now().toString(),
+   url: finalUrl,
+   seo_score: score,
+   title,
+   meta_description: metaDescription,
+   has_title: hasTitle,
+   has_meta_description: hasMetaDescription,
+   has_h1: hasH1,
+   h1_count: h1Count,
+   h1_tags: h1Tags,
+   h2_count: h2Count,
+   h3_count: h3Count,
+   heading_analysis: headingAnalysis,
+   total_images: totalImages,
+   images_without_alt: imagesWithoutAlt,
+   image_optimization_percentage: imageOptimizationPercentage,
+   page_size_kb: pageSizeKB,
+   total_links: totalLinks,
+   internal_links: internalLinks,
+   external_links: externalLinks,
+   broken_links: brokenLinks.length,
+   broken_links_list: brokenLinks,
+   word_count: wordCount,
+   keyword_density: keywordDensity,
+   has_viewport: hasViewport,
+   load_time_ms: loadTime,
+   score_breakdown: {
+    meta_tags: { score: metaTagsScore, max: 20 },
+    content: { score: contentScore, max: 30 },
+    performance: { score: performanceScore, max: 20 },
+    links: { score: linksScore, max: 30 }
+   },
+   suggestions,
+   created_at: new Date().toISOString(),
+  };
+}
+
 app.post("/analyze", async (req, res) => {
   try {
-    let { url } = req.body;
+    const { url } = req.body;
 
     if (!url) {
-      return res.status(400).json({ error: "URL is required" });
+      return res.status(400).json({
+        error: "URL is required",
+      });
     }
 
-    if (!url.startsWith("http")) {
-      url = "https://" + url;
-    }
+    const report = await analyzeWebsite(url);
 
-    const startTime = Date.now();
-
-    const response = await axios.get(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-      },
-      timeout: 10000,
-    });
-
-    const loadTime = Date.now() - startTime;
-
-    const html = response.data;
-    const $ = cheerio.load(html);
-
-    // Calculate page size in KB
-    const pageSizeBytes = Buffer.byteLength(html, 'utf8');
-    const pageSizeKB = Math.round(pageSizeBytes / 1024);
-
-    const title = $("title").first().text().trim() || null;
-
-    const metaDescription =
-      $('meta[name="description"]').attr("content")?.trim() || null;
-
-    const h1Tags = $("h1").map((i, el) => $(el).text().trim()).get();
-    const h1Count = h1Tags.length;
-    const h2Count = $("h2").length;
-    const h3Count = $("h3").length;
-
-    const headingAnalysis = {
-      h1: h1Count,
-      h2: h2Count,
-      h3: h3Count,
-      issues: [],
-    };
-
-    if (h1Count === 0) headingAnalysis.issues.push("Missing H1 tag");
-    if (h1Count > 1) headingAnalysis.issues.push("Multiple H1 tags");
-    if (h2Count === 0) headingAnalysis.issues.push("No H2 tags found");
-
-    const images = $("img");
-    const totalImages = images.length;
-
-    let imagesWithoutAlt = 0;
-    images.each((i, el) => {
-      const alt = $(el).attr("alt");
-      if (!alt || alt.trim() === "") {
-        imagesWithoutAlt++;
-      }
-    });
-
-    const imagesWithAlt = totalImages - imagesWithoutAlt;
-    const imageOptimizationPercentage = totalImages > 0 ? Math.round((imagesWithAlt / totalImages) * 100) : 0;
-
-    const links = $("a");
-    const totalLinks = links.length;
-
-    let internalLinks = 0;
-    let externalLinks = 0;
-    const linkList = [];
-
-    links.each((i, el) => {
-      const href = $(el).attr("href");
-      if (!href) return;
-
-      linkList.push(href);
-
-      if (
-        href.startsWith("/") ||
-        href.includes(new URL(url).hostname)
-      ) {
-        internalLinks++;
-      } else {
-        externalLinks++;
-      }
-    });
-
-    const brokenLinks = [];
-    const linksToCheck = linkList.slice(0, 15);
-
-    await Promise.all(
-      linksToCheck.map(async (link) => {
-        try {
-          if (!link.startsWith("http")) return;
-
-          const res = await axios.head(link, { timeout: 3000 });
-          if (res.status >= 400) {
-            brokenLinks.push(link);
-          }
-        } catch {
-          brokenLinks.push(link);
-        }
-      })
-    );
-
-    const text = $("body").text().replace(/\s+/g, " ").trim();
-    const wordCount = text ? text.split(" ").length : 0;
-
-    const stopWords = new Set([
-      "the","is","in","and","to","of","a","for","on","with","as","by","an","at","be","this","that","it","from","or","are"
-    ]);
-
-    const words = text
-      .toLowerCase()
-      .replace(/[^\w\s]/g, "")
-      .split(/\s+/)
-      .filter(word => word.length > 2 && !stopWords.has(word));
-
-    const freqMap = {};
-    words.forEach(word => {
-      freqMap[word] = (freqMap[word] || 0) + 1;
-    });
-
-    const keywordDensity = Object.entries(freqMap)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([word, count]) => ({
-        keyword: word,
-        count,
-        density: ((count / words.length) * 100).toFixed(2)
-      }));
-
-    const hasTitle = !!title;
-    const hasMetaDescription = !!metaDescription;
-    const hasH1 = h1Count > 0;
-
-    const hasViewport = $('meta[name="viewport"]').length > 0;
-
-    const suggestions = [];
-
-    if (!hasTitle) suggestions.push("Add a title tag");
-    if (!hasMetaDescription) suggestions.push("Add meta description");
-    if (!hasH1) suggestions.push("Include at least one H1 tag");
-    if (wordCount < 300) suggestions.push("Content is too short");
-    if (imagesWithoutAlt > 0) suggestions.push("Add alt text to images for better SEO");
-    if (internalLinks < 3) suggestions.push("Not enough internal links");
-    if (externalLinks > internalLinks * 2) suggestions.push("Maintain a balance of internal and external links");
-    if (brokenLinks.length > 0) suggestions.push("Broken links detected");
-    if (pageSizeKB > 500) suggestions.push("Page size is large, may affect performance");
-
-    // Check for duplicate title and meta description
-    if (title && metaDescription) {
-      const titleLower = title.toLowerCase().trim();
-      const metaLower = metaDescription.toLowerCase().trim();
-      if (titleLower === metaLower || 
-          metaLower.includes(titleLower) || 
-          titleLower.includes(metaLower)) {
-        suggestions.push("Title and meta description should be unique");
-      }
-    }
-
-    // Calculate category scores
-    let metaTagsScore = 20;
-    let contentScore = 30;
-    let performanceScore = 20;
-    let linksScore = 30;
-
-    // Meta Tags scoring (20 points max)
-    if (!title) metaTagsScore -= 10;
-    if (!metaDescription) metaTagsScore -= 10;
-    if (metaTagsScore < 0) metaTagsScore = 0;
-
-    // Content scoring (30 points max)
-    if (h1Count === 0) contentScore -= 10;
-    else if (h1Count > 1) contentScore -= 5;
-    if (wordCount < 300) contentScore -= 10;
-    else if (wordCount >= 600) contentScore += 5; // Bonus for longer content
-    if (imagesWithoutAlt > 0) contentScore -= 5;
-    if (contentScore < 0) contentScore = 0;
-    if (contentScore > 30) contentScore = 30;
-
-    // Performance scoring (20 points max)
-    if (loadTime > 3000) performanceScore -= 10;
-    else if (loadTime > 2000) performanceScore -= 5;
-    if (!hasViewport) performanceScore -= 5;
-    if (performanceScore < 0) performanceScore = 0;
-
-    // Links scoring (30 points max)
-    if (totalLinks === 0) linksScore -= 15;
-    else if (totalLinks < 5) linksScore -= 10;
-    if (internalLinks < 3) linksScore -= 10;
-    if (brokenLinks.length > 0) linksScore -= 5;
-    if (linksScore < 0) linksScore = 0;
-
-    // Calculate total score as sum of category scores
-    let score = metaTagsScore + contentScore + performanceScore + linksScore;
-
-    if (score < 0) score = 0;
-
-    const report = {
-      id: Date.now().toString(),
-      url,
-      seo_score: score,
-      title,
-      meta_description: metaDescription,
-      has_title: hasTitle,
-      has_meta_description: hasMetaDescription,
-      has_h1: hasH1,
-      h1_count: h1Count,
-      h1_tags: h1Tags,
-      h2_count: h2Count,
-      h3_count: h3Count,
-      heading_analysis: headingAnalysis,
-      total_images: totalImages,
-      images_without_alt: imagesWithoutAlt,
-      image_optimization_percentage: imageOptimizationPercentage,
-      page_size_kb: pageSizeKB,
-      total_links: totalLinks,
-      internal_links: internalLinks,
-      external_links: externalLinks,
-      broken_links: brokenLinks.length,
-      broken_links_list: brokenLinks,
-      word_count: wordCount,
-      keyword_density: keywordDensity,
-      has_viewport: hasViewport,
-      load_time_ms: loadTime,
-      score_breakdown: {
-        meta_tags: { score: metaTagsScore, max: 20 },
-        content: { score: contentScore, max: 30 },
-        performance: { score: performanceScore, max: 20 },
-        links: { score: linksScore, max: 30 }
-      },
-      suggestions,
-      created_at: new Date().toISOString(),
-    };
-
-    res.json(report);
+    return res.json(report);
 
   } catch (error) {
     console.error("ERROR:", error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       error: "Failed to analyze website",
       details: error.message,
     });
@@ -458,6 +467,38 @@ app.post("/optimize", (req, res) => {
     console.error(error);
     res.status(500).json({
       error: "Failed to optimize content"
+    });
+  }
+});
+/* ===========================
+   📊 WEBSITE COMPARISON
+=========================== */
+app.post("/compare", async (req, res) => {
+  try {
+    const { url1, url2 } = req.body;
+
+    if (!url1 || !url2) {
+      return res.status(400).json({
+        error: "Both url1 and url2 are required",
+      });
+    }
+
+    const [site1, site2] = await Promise.all([
+      analyzeWebsite(url1),
+      analyzeWebsite(url2),
+    ]);
+
+    return res.json({
+      site1,
+      site2,
+    });
+
+  } catch (error) {
+    console.error("COMPARE ERROR:", error.message);
+
+    return res.status(500).json({
+      error: "Failed to compare websites",
+      details: error.response?.data || error.message,
     });
   }
 });

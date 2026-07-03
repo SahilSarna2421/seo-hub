@@ -23,7 +23,7 @@ const ContentOptimizer = () => {
     setResult(null);
 
     try {
-      const res = await fetch("https://seo-hub.onrender.com/optimize", {
+      const res = await fetch("http://localhost:5000/optimize", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

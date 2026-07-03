@@ -18,7 +18,7 @@ const Analyzer = () => {
     setCurrentReport(null);
 
     try {
-      const response = await fetch("https://seo-hub.onrender.com/analyze", {
+      const response = await fetch("http://localhost:5000/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

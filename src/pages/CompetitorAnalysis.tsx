@@ -14,27 +14,52 @@ const CompetitorAnalysis = () => {
   const [yourUrl, setYourUrl] = useState("");
   const [competitorUrl, setCompetitorUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const [comparisonData, setComparisonData] = useState<any>(null);
 
   const handleCompare = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!yourUrl.trim() || !competitorUrl.trim()) {
-      toast({
+        toast({
         title: "Please complete both fields.",
         description: "Enter your website URL and a competitor URL before comparing.",
         variant: "destructive",
-      });
-      return;
+        });
+        return;
     }
 
     setLoading(true);
-    setShowResults(false);
+    setComparisonData(null);
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+        const response = await fetch("http://localhost:5000/compare", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            url1: yourUrl,
+            url2: competitorUrl,
+        }),
+        });
 
-    setLoading(false);
-    setShowResults(true);
+        if (!response.ok) {
+        throw new Error("Failed to compare websites");
+        }
+
+        const data = await response.json();
+
+        setComparisonData(data);
+
+    } catch (err: any) {
+        toast({
+        title: "Comparison failed",
+        description: err.message,
+        variant: "destructive",
+        });
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
@@ -109,13 +134,15 @@ const CompetitorAnalysis = () => {
             </CardContent>
           </Card>
 
-          {showResults && (
+          {comparisonData && (
             <Card className="border border-border/50 shadow-sm bg-card/95">
               <CardHeader>
                 <CardTitle>Comparison results</CardTitle>
               </CardHeader>
               <CardContent className="pt-0 text-sm text-muted-foreground">
-                Comparison results will appear here.
+                <pre className="overflow-auto text-xs">
+                    {JSON.stringify(comparisonData, null, 2)}
+                </pre>
               </CardContent>
             </Card>
           )}
