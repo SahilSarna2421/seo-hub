@@ -249,8 +249,8 @@ const CompetitorAnalysis = () => {
             };
 
             const insights: string[] = [];
-            if (winnerText !== "Tie") {
-              insights.push(`${winnerText === "Your Website" ? "Your website" : "The competitor"} has the stronger overall SEO score.`);
+            if (winnerText !== "🤝 Tie") {
+              insights.push(`${winnerText === "🏆 Your Website" ? "Your website" : "The competitor"} has the stronger overall SEO score.`);
             } else {
               insights.push("Both sites have an even overall SEO score.");
             }
