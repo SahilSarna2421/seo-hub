@@ -75,9 +75,12 @@ const KeywordResearch = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post<KeywordResearchResponse>("/keyword-research", {
-        keyword: keyword.trim(),
-      });
+      const response = await axios.post<KeywordResearchResponse>(
+        "http://localhost:5000/keyword-research",
+        {
+            keyword: keyword.trim(),
+        }
+    );
       setResult(response.data);
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message || "Could not fetch keyword research results.");
@@ -178,10 +181,10 @@ const KeywordResearch = () => {
                 <div className="flex items-center justify-between rounded-2xl border border-border/50 bg-card/60 p-5">
                 <div>
                     <p className="text-sm text-muted-foreground">
-                    Showing results for
+                    Current Keyword
                     </p>
                     <h2 className="text-3xl font-bold mt-1">
-                    "{keyword}"
+                        {keyword.charAt(0).toUpperCase() + keyword.slice(1)}
                     </h2>
                 </div>
             </div>

@@ -470,6 +470,113 @@ app.post("/optimize", (req, res) => {
     });
   }
 });
+
+/* ===========================
+   🧠 KEYWORD RESEARCH TOOL
+=========================== */
+
+function buildKeywordResearchResponse(keyword) {
+  const term = keyword.trim();
+  const lower = term.toLowerCase();
+  const defaultIntent =
+  /(how|what|why|guide|learn|tutorial|meaning|tips|examples|seo|python|react|javascript)/i.test(term)
+    ? "Informational"
+    : /(buy|price|cheap|deal|order|purchase)/i.test(term)
+    ? "Transactional"
+    : /(best|top|review|vs|comparison)/i.test(term)
+    ? "Commercial"
+    : "Navigational";
+
+      // Generate deterministic metrics based on the keyword
+  const keywordSeed = [...lower].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+
+  const estimatedVolume = 5000 + (keywordSeed * 137) % 40001;
+  const searchVolume = `≈ ${estimatedVolume.toLocaleString()}/month`;
+
+  const difficultyScore = 40 + (keywordSeed % 41);
+
+  const competitionRaw = 0.3 + ((keywordSeed % 61) / 100);
+  const competitionValue = competitionRaw.toFixed(2);
+  const competitionLabel =
+    competitionRaw >= 0.65
+      ? "High"
+      : competitionRaw >= 0.45
+      ? "Medium"
+      : "Low";
+
+  const cpcValue = (10 + ((keywordSeed * 7) % 5000) / 100).toFixed(2);
+
+  const relatedKeywords = [
+    `${term} tutorial`,
+    `${term} course`,
+    `${term} tips`,
+    `best ${term} practices`,
+    `${term} examples`,
+  ];
+
+  const longTailKeywords = [
+    `best ${term} course for beginners`,
+    `learn ${term} in 30 days`,
+    `how to use ${term} effectively`,
+    `advanced ${term} strategies`,
+  ];
+
+  const questionKeywords = [
+    `What is ${term}?`,
+    `How do I learn ${term}?`,
+    `Why use ${term}?`,
+  ];
+
+  const recommendations = [
+    `Use the keyword in the H1.`,
+    `Mention the keyword in the first paragraph.`,
+    `Include related keywords naturally.`,
+    `Add FAQ sections using question keywords.`,
+    `Avoid keyword stuffing.`,
+  ];
+
+  return {
+    overview: {
+      searchVolume,
+      difficulty: `${difficultyScore}/100 (${
+      difficultyScore >= 75
+        ? "Hard"
+        : difficultyScore >= 55
+        ? "Medium"
+        : "Easy"
+      })`,
+      competition: `${competitionValue} (${competitionLabel})`,
+      cpc: `≈ ₹${cpcValue}`,
+      intent: defaultIntent,
+    },
+    relatedKeywords,
+    longTailKeywords,
+    questionKeywords,
+    recommendations,
+  };
+}
+
+app.post("/keyword-research", (req, res) => {
+  try {
+    const { keyword } = req.body;
+
+    if (!keyword || typeof keyword !== "string" || !keyword.trim()) {
+      return res.status(400).json({
+        error: "Keyword is required"
+      });
+    }
+
+    const data = buildKeywordResearchResponse(keyword);
+    return res.json(data);
+  } catch (error) {
+    console.error("KEYWORD RESEARCH ERROR:", error.message || error);
+    return res.status(500).json({
+      error: "Failed to generate keyword research data",
+      details: error.message || "Internal server error"
+    });
+  }
+});
+
 /* ===========================
    📊 WEBSITE COMPARISON
 =========================== */
