@@ -10,6 +10,7 @@ import Index from "./pages/Index"; // Home page
 import Analyzer from "./pages/Analyzer"; // ✅ NEW
 import CompetitorAnalysis from "./pages/CompetitorAnalysis";
 import ContentOptimizer from "./pages/ContentOptimizer"; // ✅ NEW
+import KeywordResearch from "./pages/KeywordResearch";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,9 @@ const App = () => (
 
             {/* 📊 Competitor Analysis */}
             <Route path="/competitor" element={<CompetitorAnalysis />} />
+
+            {/* 🧠 Keyword Research */}
+            <Route path="/keyword-research" element={<KeywordResearch />} />
 
             {/* ✍️ Content Optimizer */}
             <Route path="/optimizer" element={<ContentOptimizer />} />

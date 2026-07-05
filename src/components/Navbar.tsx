@@ -14,9 +14,10 @@ export const Navbar = () => {
 
   const navLinks = [
     { label: "Home", path: "/" },
-    { label: "Analyzer", path: "/analyzer" },
-    { label: "Competitor", path: "/competitor" },
-    { label: "Optimizer", path: "/optimizer" },
+    { label: "Website Analyzer", path: "/analyzer" },
+    { label: "Competitor Analysis", path: "/competitor" },
+    { label: "Keyword Research", path: "/keyword-research" },
+    { label: "Content Optimizer", path: "/optimizer" },
   ];
 
   return (
