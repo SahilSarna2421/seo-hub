@@ -1,7 +1,16 @@
+require("dotenv").config();
+
 const express = require("express");
 const axios = require("axios");
 const cheerio = require("cheerio");
 const cors = require("cors");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.5-flash",
+});
 
 const app = express();
 
@@ -556,6 +565,137 @@ function buildKeywordResearchResponse(keyword) {
   };
 }
 
+async function generateContentBrief(keyword) {
+  const prompt = `
+You are a senior SEO strategist and content marketing expert.
+
+Generate a professional SEO Content Brief for the target keyword:
+
+"${keyword}"
+
+Your goal is to help a content writer create an article that has an excellent chance of ranking on Google.
+
+Follow current SEO best practices.
+
+Generate:
+
+- Search Intent
+- Target Audience
+- Primary Content Goal
+- Recommended Word Count
+- SEO Optimized Title
+- Meta Description (150-160 characters)
+- URL Slug
+- One H1 Heading
+- 6-8 SEO Optimized H2 Headings
+- 5-8 Supporting H3 Ideas
+- 8 Related Keywords
+- 8 Long-tail Keywords
+- 5 Frequently Asked Questions
+- Generate 5 relevant internal article titles.
+
+- Each item should look like a real blog article title.
+
+Examples:
+
+Benefits of Smart Travel Apps
+
+How to Save Money While Traveling
+
+Solo Travel Planning Guide
+
+Travel Insurance Basics
+
+Top Travel Gadgets for Modern Explorers
+
+IMPORTANT:
+
+Never generate URLs.
+
+Never generate website links.
+
+Return only plain article titles.
+- 6 Writing Tips
+- One compelling Call To Action
+
+IMPORTANT RULES:
+
+Return ONLY valid JSON.
+
+Do NOT write explanations.
+
+Do NOT write markdown.
+
+Do NOT wrap the response inside \`\`\`.
+
+Use EXACTLY this JSON structure:
+
+{
+  "overview": {
+    "searchIntent": "",
+    "targetAudience": "",
+    "contentGoal": "",
+    "wordCount": ""
+  },
+  "seo": {
+    "title": "",
+    "metaDescription": "",
+    "urlSlug": ""
+  },
+  "headings": {
+    "h1": "",
+    "h2": [],
+    "h3": []
+  },
+  "keywords": {
+    "related": [],
+    "longTail": []
+  },
+  "faqs": [],
+  "internalLinks": [],
+  "writingTips": [],
+  "callToAction": ""
+}
+`;
+
+  try {
+    const result = await model.generateContent(prompt);
+
+    let text = result.response.text().trim();
+
+    // Remove markdown fences if Gemini returns them
+    text = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+
+    return JSON.parse(text);
+  } catch (error) {
+    console.error("Gemini Content Brief Error:", error);
+    throw new Error("Failed to generate AI SEO content brief.");
+  }
+}
+
+app.post("/content-brief", async (req, res) => {
+  try {
+    const { keyword } = req.body;
+
+    if (!keyword || !keyword.trim()) {
+      return res.status(400).json({
+        message: "Keyword is required."
+      });
+    }
+
+    const contentBrief = await generateContentBrief(keyword.trim());
+
+    return res.json(contentBrief);
+
+  } catch (error) {
+    console.error("Content Brief Error:", error);
+
+    return res.status(500).json({
+      message: "Failed to generate AI SEO content brief."
+    });
+  }
+});
+
 app.post("/keyword-research", (req, res) => {
   try {
     const { keyword } = req.body;
@@ -609,6 +749,8 @@ app.post("/compare", async (req, res) => {
     });
   }
 });
+
+
 
 const PORT = process.env.PORT || 5000;
 

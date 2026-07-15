@@ -11,6 +11,7 @@ import Analyzer from "./pages/Analyzer"; // ✅ NEW
 import CompetitorAnalysis from "./pages/CompetitorAnalysis";
 import ContentOptimizer from "./pages/ContentOptimizer"; // ✅ NEW
 import KeywordResearch from "./pages/KeywordResearch";
+import AIContentBrief from "./pages/AIContentBrief";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,9 @@ const App = () => (
 
             {/* ✍️ Content Optimizer */}
             <Route path="/optimizer" element={<ContentOptimizer />} />
+
+            {/* 🤖 AI SEO Content Brief */}
+            <Route path="/content-brief" element={<AIContentBrief />} />
 
             {/* ❌ Fallback */}
             <Route path="*" element={<NotFound />} />

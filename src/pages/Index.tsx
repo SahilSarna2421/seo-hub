@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
-import { Search, FileText, BarChart3, ArrowRight } from "lucide-react";
+import { Search, FileText, BarChart3, ArrowRight, Sparkles, KeyRound } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Index = () => {
@@ -115,7 +115,7 @@ const Index = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
             onClick={() => navigate("/competitor")}
-            className="group cursor-pointer rounded-2xl border border-border/50 bg-card p-8 shadow-sm hover:shadow-glow hover:border-primary/50 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden flex flex-col items-start text-left md:col-span-2 lg:col-span-1"
+            className="group cursor-pointer rounded-2xl border border-border/50 bg-card p-8 shadow-sm hover:shadow-glow hover:border-primary/50 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden flex flex-col items-start text-left"
           >
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
               <BarChart3 className="h-40 w-40 text-primary -translate-y-10 translate-x-10" />
@@ -137,6 +137,68 @@ const Index = () => {
 
             <div className="mt-auto flex items-center text-primary font-medium group-hover:translate-x-2 transition-transform">
               Compare Websites <ArrowRight className="ml-2 h-4 w-4" />
+            </div>
+          </motion.div>
+
+          {/* Keyword Research */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.45 }}
+            onClick={() => navigate("/keyword-research")}
+            className="group cursor-pointer rounded-2xl border border-border/50 bg-card p-8 shadow-sm hover:shadow-glow hover:border-primary/50 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden flex flex-col items-start text-left"
+          >
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+              <KeyRound className="h-40 w-40 text-primary -translate-y-10 translate-x-10" />
+            </div>
+
+            <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+              <KeyRound className="h-7 w-7 text-primary" />
+            </div>
+
+            <h2 className="text-2xl font-bold font-heading mb-3">
+              Keyword Research
+            </h2>
+
+            <p className="text-muted-foreground leading-relaxed mb-8 relative z-10">
+              Discover related keywords, long-tail keywords, search intent,
+              competition insights and SEO recommendations to build a strong
+              keyword strategy.
+            </p>
+
+            <div className="mt-auto flex items-center text-primary font-medium group-hover:translate-x-2 transition-transform">
+              Research Keywords <ArrowRight className="ml-2 h-4 w-4" />
+            </div>
+          </motion.div>
+
+          {/* AI SEO Content Brief */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            onClick={() => navigate("/content-brief")}
+            className="group cursor-pointer rounded-2xl border border-border/50 bg-card p-8 shadow-sm hover:shadow-glow hover:border-primary/50 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden flex flex-col items-start text-left md:col-span-2"
+          >
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+              <Sparkles className="h-40 w-40 text-primary -translate-y-10 translate-x-10" />
+            </div>
+
+            <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+              <Sparkles className="h-7 w-7 text-primary" />
+            </div>
+
+            <h2 className="text-2xl font-bold font-heading mb-3">
+              AI SEO Content Brief
+            </h2>
+
+            <p className="text-muted-foreground leading-relaxed mb-8 relative z-10">
+              Generate an AI-powered SEO content brief including optimized titles,
+              headings, FAQs, keyword suggestions, internal linking ideas and
+              writing tips using Gemini AI.
+            </p>
+
+            <div className="mt-auto flex items-center text-primary font-medium group-hover:translate-x-2 transition-transform">
+              Generate Brief <ArrowRight className="ml-2 h-4 w-4" />
             </div>
           </motion.div>
 

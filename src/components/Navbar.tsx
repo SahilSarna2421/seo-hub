@@ -18,6 +18,7 @@ export const Navbar = () => {
     { label: "Competitor Analysis", path: "/competitor" },
     { label: "Keyword Research", path: "/keyword-research" },
     { label: "Content Optimizer", path: "/optimizer" },
+    { label: "AI Content Brief", path: "/content-brief" },
   ];
 
   return (
