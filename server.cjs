@@ -663,10 +663,18 @@ Use EXACTLY this JSON structure:
 
     let text = result.response.text().trim();
 
-    // Remove markdown fences if Gemini returns them
-    text = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+    // Remove markdown fences
+    text = text
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .trim();
+
+    console.log("===== GEMINI RESPONSE START =====");
+    console.log(text);
+    console.log("===== GEMINI RESPONSE END =====");
 
     return JSON.parse(text);
+
   } catch (error) {
     console.error("Gemini Content Brief Error:", error);
     throw new Error("Failed to generate AI SEO content brief.");
