@@ -76,7 +76,7 @@ const KeywordResearch = () => {
 
     try {
       const response = await axios.post<KeywordResearchResponse>(
-        "http://localhost:5000/keyword-research",
+        `${import.meta.env.VITE_API_URL}/keyword-research`,
         {
             keyword: keyword.trim(),
         }

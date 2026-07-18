@@ -96,7 +96,7 @@ const AIContentBrief = () => {
 
     try {
       const response = await axios.post<ContentBriefResponse>(
-        "http://localhost:5000/content-brief",
+        `${import.meta.env.VITE_API_URL}/content-brief`,
         {
           keyword: keyword.trim(),
         }
